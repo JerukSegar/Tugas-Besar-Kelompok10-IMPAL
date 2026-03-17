@@ -11,11 +11,11 @@ Markdown
 ## Perancangan Sistem (DFD)
 
 ### DFD Level 0
-![DFD Level 0](path/ke/gambar/dfd0.png)
+![DFD Level 0](dfdlv0.png)
 *Diagram Konteks yang menunjukkan aliran data global.*
 
 ### DFD Level 1
-![DFD Level 1](path/ke/gambar/dfd1.png)
+![DFD Level 1](dfdlv1.png)
 *Detail proses bisnis dan integrasi database.*
 
 ---
@@ -25,7 +25,7 @@ Rancangan UI aplikasi yang berfokus pada pengalaman pengguna.
 
 | Login Page | Dashboard | Core Feature |
 | :---: | :---: | :---: |
-| ![Login](assets/login.png) | ![Dash](assets/dash.png) | ![Feature](assets/feature.png) |
+| ![Login](login.jpeg) | ![Dash](home.jpeg) | ![Feature](menu.jpeg) |
 
 ---
 
