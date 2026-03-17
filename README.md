@@ -2,13 +2,13 @@
 Tugas W3 Sub CLO2 : Mampu memahami user (Step 1 Proses Desain UI)
 Markdown
 
-# 🚀 Tugas Besar: [Nama Proyek]
+# Tugas Besar: EventHub:Sistem Manajemen Event & Peserta
 
 > **Dosen Pengampu:** Muhammad Shiddiq Azis, S.T., MBA
 
 ---
 
-## 📊 Perancangan Sistem (DFD)
+## Perancangan Sistem (DFD)
 
 ### DFD Level 0
 ![DFD Level 0](path/ke/gambar/dfd0.png)
@@ -20,7 +20,7 @@ Markdown
 
 ---
 
-## 🎨 Mockup Antarmuka
+## Mockup Antarmuka
 Rancangan UI aplikasi yang berfokus pada pengalaman pengguna.
 
 | Login Page | Dashboard | Core Feature |
@@ -29,14 +29,14 @@ Rancangan UI aplikasi yang berfokus pada pengalaman pengguna.
 
 ---
 
-## 🛠️ Stack Teknologi
+## Stack Teknologi
 - **Frontend:** Next.js / Java Swing
 - **Backend:** Node.js / Java 
 - **Database:** PostgreSQL / MySQL
 
 ---
 
-## 📂 Cara Instalasi
+## Cara Instalasi
 1. `git clone [url-repo]`
 2. `npm install` (atau sesuaikan dengan environment)
 3. `npm run dev`
