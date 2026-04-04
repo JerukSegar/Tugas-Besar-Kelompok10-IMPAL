@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EventHub – Daftar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #1A56DB; --primary-dark: #1648C0;
+      --bg: #F4F6F9; --card: #FFFFFF; --text: #111827;
+      --muted: #6B7280; --border: #E5E7EB; --input-bg: #F9FAFB;
+    }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg); min-height: 100vh;
+      display: flex; align-items: center; justify-content: center; padding: 24px;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image: radial-gradient(circle, #d1ddf7 1px, transparent 1px);
+      background-size: 28px 28px; opacity: 0.45;
+      pointer-events: none; z-index: 0;
+    }
+    .card {
+      position: relative; z-index: 1; background: var(--card);
+      border-radius: 20px;
+      box-shadow: 0 4px 32px rgba(26,86,219,0.08), 0 1px 4px rgba(0,0,0,0.06);
+      padding: 44px 40px 36px; width: 100%; max-width: 420px;
+      animation: fadeUp 0.5s cubic-bezier(.22,1,.36,1) both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .brand {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 10px; margin-bottom: 32px;
+    }
+    .brand-icon {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: linear-gradient(135deg, #1A56DB 0%, #3B82F6 100%);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 16px rgba(26,86,219,0.3);
+    }
+    .brand-icon svg { width: 32px; height: 32px; fill: white; }
+    .brand-name { font-size: 22px; font-weight: 700; color: var(--text); }
+    .brand-sub  { font-size: 13.5px; color: var(--muted); margin-top: -6px; }
+    .form-title { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 20px; }
+    .field { margin-bottom: 16px; }
+    label { display: block; font-size: 13.5px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+    input[type="email"], input[type="password"], input[type="text"] {
+      width: 100%; padding: 11px 14px; background: var(--input-bg);
+      border: 1.5px solid var(--border); border-radius: 8px;
+      font-size: 14px; font-family: inherit; color: var(--text);
+      outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input::placeholder { color: #9CA3AF; }
+    input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(26,86,219,0.1); background: #fff;
+    }
+    .btn-primary {
+      width: 100%; padding: 13px; background: var(--primary);
+      color: white; border: none; border-radius: 8px;
+      font-size: 15px; font-weight: 600; font-family: inherit;
+      cursor: pointer; margin-top: 8px; transition: background 0.2s;
+      box-shadow: 0 2px 8px rgba(26,86,219,0.25);
+    }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .footer-text { text-align: center; margin-top: 22px; font-size: 13.5px; color: var(--muted); }
+    .footer-text a { color: var(--primary); font-weight: 600; text-decoration: none; }
+    select {
+      width: 100%; padding: 11px 14px; background: var(--input-bg);
+      border: 1.5px solid var(--border); border-radius: 8px;
+      font-size: 14px; font-family: inherit; color: var(--text);
+      outline: none; transition: border-color 0.2s;
+    }
+    select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,86,219,0.1); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5C3.9 3 3 3.9 3 5v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 18H5V9h14v12zm0-14H5V5h14v2zM7 11h5v5H7z"/></svg>
+      </div>
+      <div class="brand-name">EventHub</div>
+      <div class="brand-sub">Sistem Manajemen Event &amp; Peserta</div>
+    </div>
+
+    <div class="form-title">Buat akun baru</div>
+
+    <div class="field">
+      <label for="nama">Nama Lengkap</label>
+      <input type="text" id="nama" placeholder="Masukkan nama lengkap"/>
+    </div>
+
+    <div class="field">
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="nama@email.com"/>
+    </div>
+
+    <div class="field">
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Min. 6 karakter"/>
+    </div>
+
+    <div class="field">
+      <label for="role">Role</label>
+      <select id="role">
+        <option value="peserta">Peserta</option>
+        <option value="penyelenggara">Penyelenggara</option>
+      </select>
+    </div>
+
+    <button class="btn-primary" onclick="handleRegister()">Daftar Sekarang</button>
+
+    <p class="footer-text">
+      Sudah punya akun? <a href="login.html">Masuk di sini</a>
+    </p>
+  </div>
+
+  <script>
+    function handleRegister() {
+      const nama = document.getElementById('nama').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const role = document.getElementById('role').value;
+
+      if (!nama || !email || !password) {
+        alert('Semua field wajib diisi!');
+        return;
+      }
+      if (password.length < 6) {
+        alert('Password minimal 6 karakter!');
+        return;
+      }
+
+      fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nama, email, password, role })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert('Akun berhasil dibuat! Silakan login.');
+          window.location.href = 'login.html';
+        } else {
+          alert(data.message || 'Gagal mendaftar!');
+        }
+      })
+      .catch(() => alert('Gagal konek ke server!'));
+    }
+  </script>
+</body>
+</html>
