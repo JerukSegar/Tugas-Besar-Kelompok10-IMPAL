@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Konfirmasi Pendaftaran — EventHub</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{--primary:#1a56db;--primary-dark:#1341b3;--primary-light:#ebf1fd;--sidebar-bg:#0f2044;--sidebar-hover:rgba(255,255,255,0.07);--sidebar-active:rgba(255,255,255,0.14);--white:#ffffff;--gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;--gray-300:#cbd5e1;--gray-400:#94a3b8;--gray-500:#64748b;--gray-600:#475569;--gray-700:#334155;--gray-800:#1e293b;--success:#10b981;--success-light:#d1fae5;--danger:#ef4444;--danger-light:#fee2e2;--font:'Plus Jakarta Sans',sans-serif;--shadow-sm:0 1px 3px rgba(0,0,0,0.07);--shadow-md:0 4px 16px rgba(0,0,0,0.1);--radius-sm:6px;--radius:10px;--radius-lg:14px;--sidebar-w:220px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--gray-50);color:var(--gray-800);display:flex;min-height:100vh;font-size:14px;}
+button{cursor:pointer;font-family:var(--font);border:none;outline:none;}
+.sidebar{width:var(--sidebar-w);min-height:100vh;background:var(--sidebar-bg);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;}
+.sidebar-brand{display:flex;align-items:center;gap:10px;padding:22px 18px 18px;border-bottom:1px solid rgba(255,255,255,0.07);}
+.brand-icon{width:36px;height:36px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.brand-icon svg{width:20px;height:20px;fill:white;}
+.brand-name{font-size:17px;font-weight:700;color:white;}
+.sidebar-nav{flex:1;padding:14px 10px;display:flex;flex-direction:column;gap:2px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);color:rgba(255,255,255,0.6);font-size:13.5px;font-weight:500;cursor:pointer;transition:all 0.18s;text-decoration:none;}
+.nav-item:hover{background:var(--sidebar-hover);color:rgba(255,255,255,0.9);}
+.nav-item.active{background:var(--sidebar-active);color:white;font-weight:600;}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:0.8;}
+.nav-item.active svg{opacity:1;}
+.sidebar-footer{padding:14px 10px;border-top:1px solid rgba(255,255,255,0.07);}
+.user-info{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;}
+.user-info:hover{background:var(--sidebar-hover);border-radius:var(--radius-sm);}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:white;flex-shrink:0;}
+.user-name{font-size:13px;font-weight:600;color:white;}
+.user-role{font-size:11px;color:rgba(255,255,255,0.4);}
+.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;}
+.topbar{display:flex;align-items:center;gap:14px;padding:16px 28px;background:var(--white);border-bottom:1px solid var(--gray-200);position:sticky;top:0;z-index:50;}
+.btn-back{width:34px;height:34px;border-radius:var(--radius-sm);background:var(--gray-100);display:flex;align-items:center;justify-content:center;border:1px solid var(--gray-200);color:var(--gray-500);cursor:pointer;flex-shrink:0;}
+.btn-back:hover{background:var(--gray-200);}
+.btn-back svg{width:16px;height:16px;}
+.topbar-title h1{font-size:18px;font-weight:700;}
+.topbar-title p{font-size:13px;color:var(--gray-500);margin-top:1px;}
+
+.content{padding:32px 28px;display:flex;justify-content:center;}
+.konfirmasi-wrap{width:100%;max-width:760px;display:flex;flex-direction:column;gap:20px;}
+
+/* Event Card */
+.event-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);}
+.event-banner{height:130px;display:flex;align-items:center;justify-content:center;position:relative;}
+.event-banner-tag{position:absolute;top:14px;left:16px;}
+.event-tag{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;padding:3px 10px;border-radius:20px;}
+.tag-seminar{background:#dbeafe;color:#1d4ed8;}
+.tag-workshop{background:#d1fae5;color:#065f46;}
+.tag-konferensi{background:#ede9fe;color:#5b21b6;}
+.tag-webinar{background:#fef3c7;color:#92400e;}
+.tag-bootcamp{background:#fee2e2;color:#991b1b;}
+.event-body{padding:20px 24px;}
+.event-name{font-size:20px;font-weight:800;color:var(--gray-800);margin-bottom:16px;line-height:1.3;}
+.event-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.info-item{display:flex;align-items:flex-start;gap:10px;}
+.info-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+.info-label{font-size:11px;font-weight:600;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px;}
+.info-val{font-size:13px;font-weight:600;color:var(--gray-700);}
+.harga-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:var(--success-light);border:1px solid #6ee7b7;border-radius:20px;font-size:13px;font-weight:700;color:#065f46;margin-top:16px;}
+
+/* Persetujuan Card */
+.persetujuan-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:24px;box-shadow:var(--shadow-sm);}
+.card-title{font-size:15px;font-weight:700;color:var(--gray-800);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.syarat-list{display:flex;flex-direction:column;gap:12px;margin-bottom:20px;}
+.syarat-item{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:var(--gray-50);border-radius:var(--radius-sm);border:1px solid var(--gray-200);}
+.syarat-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+.syarat-text{font-size:13px;color:var(--gray-600);line-height:1.5;}
+.syarat-text strong{color:var(--gray-800);}
+
+/* Checkbox persetujuan */
+.checkbox-wrap{display:flex;align-items:flex-start;gap:12px;padding:16px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);cursor:pointer;transition:border-color 0.2s,background 0.2s;margin-bottom:4px;}
+.checkbox-wrap:hover{border-color:var(--primary);background:var(--primary-light);}
+.checkbox-wrap.checked{border-color:var(--primary);background:var(--primary-light);}
+.checkbox-wrap input[type="checkbox"]{width:18px;height:18px;flex-shrink:0;accent-color:var(--primary);cursor:pointer;margin-top:1px;}
+.checkbox-label{font-size:13px;color:var(--gray-700);line-height:1.5;cursor:pointer;}
+.checkbox-label strong{color:var(--gray-800);}
+
+/* Ringkasan */
+.ringkasan-card{background:var(--primary-light);border:1px solid #c7d9f8;border-radius:var(--radius-lg);padding:20px 24px;}
+.ringkasan-title{font-size:13px;font-weight:700;color:var(--primary-dark);margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+.ringkasan-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--gray-600);margin-bottom:10px;}
+.ringkasan-row:last-child{margin-bottom:0;padding-top:12px;border-top:1px solid #c7d9f8;font-weight:700;font-size:14px;color:var(--gray-800);}
+.val-green{font-weight:700;color:var(--success);}
+.val-blue{font-weight:700;color:var(--primary);}
+
+/* Tombol aksi */
+.action-wrap{display:flex;gap:12px;}
+.btn-konfirmasi{flex:1;padding:14px;background:var(--primary);color:white;border-radius:var(--radius-sm);font-size:15px;font-weight:700;cursor:pointer;transition:background 0.15s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-konfirmasi:hover:not(:disabled){background:var(--primary-dark);}
+.btn-konfirmasi:disabled{opacity:0.5;cursor:not-allowed;}
+.btn-batal{padding:14px 28px;background:var(--gray-100);color:var(--gray-600);border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;transition:background 0.15s;}
+.btn-batal:hover{background:var(--gray-200);}
+
+/* Alert */
+.alert{padding:12px 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;display:none;}
+.alert-success{background:var(--success-light);color:#065f46;border:1px solid #6ee7b7;}
+.alert-error{background:var(--danger-light);color:#991b1b;border:1px solid #fca5a5;}
+
+/* Sukses state */
+.sukses-card{background:var(--white);border:1px solid #6ee7b7;border-radius:var(--radius-lg);padding:40px 24px;text-align:center;box-shadow:var(--shadow-sm);display:none;}
+.sukses-icon{width:72px;height:72px;background:var(--success-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:36px;}
+.sukses-title{font-size:22px;font-weight:800;color:var(--gray-800);margin-bottom:8px;}
+.sukses-sub{font-size:14px;color:var(--gray-500);margin-bottom:20px;line-height:1.6;}
+.kode-tiket-box{display:inline-block;padding:10px 20px;background:var(--gray-50);border:1.5px dashed var(--gray-300);border-radius:var(--radius-sm);font-size:14px;font-weight:700;color:var(--gray-700);letter-spacing:0.05em;margin-bottom:24px;}
+.btn-ke-tiket{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:var(--primary);color:white;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;transition:background 0.15s;}
+.btn-ke-tiket:hover{background:var(--primary-dark);}
+
+/* Skeleton */
+.skeleton{background:linear-gradient(90deg,var(--gray-200) 25%,var(--gray-100) 50%,var(--gray-200) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:4px;}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+.toast{padding:12px 18px;background:var(--gray-800);color:white;border-radius:var(--radius);font-size:13px;font-weight:500;box-shadow:var(--shadow-md);animation:slideIn 0.3s ease;}
+.toast.success{background:#065f46;}
+.toast.error{background:#991b1b;}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:none;}}
+.hidden{display:none!important;}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5C3.9 4 3 4.9 3 6v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM5 7V6h14v1H5zm2 4h10v2H7v-2zm0 4h7v2H7v-2z"/></svg></div>
+    <span class="brand-name">EventHub</span>
+  </div>
+  <nav class="sidebar-nav">
+    <a class="nav-item" href="dashboard.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>Dashboard</a>
+    <a class="nav-item active" href="semua_event.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>Semua Event</a>
+    <a class="nav-item" href="event_saya.html" id="navEventSaya"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg><span id="labelEventSaya">Event Saya</span></a>
+    <a class="nav-item" href="tiket_saya.html" id="navTiket"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 10V6c0-1.11-.9-2-2-2H4c-1.1 0-1.99.89-1.99 2v4c1.1 0 1.99.9 1.99 2s-.89 2-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2s.9-2 2-2z"/></svg>Tiket Saya</a>
+    <a class="nav-item" href="checkin_saya.html" id="navCheckin"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>Check-In</a>
+    <a class="nav-item hidden" href="laporan.html" id="navLaporan"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>Laporan</a>
+    <a class="nav-item hidden" href="broadcast.html" id="navBroadcast"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 11v2h4v-2h-4zm-2 6.61c.96.71 2.21 1.65 3.2 2.39.4-.53.8-1.07 1.2-1.6-.99-.74-2.24-1.68-3.2-2.4-.4.54-.8 1.08-1.2 1.61zM20.4 5.6c-.4-.53-.8-1.07-1.2-1.6-.99.74-2.24 1.68-3.2 2.4.4.53.8 1.07 1.2 1.6.96-.72 2.21-1.65 3.2-2.4zM4 9c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h1v4h2v-4h1l5 3V6L8 9H4zm11.5 3c0-1.33-.58-2.53-1.5-3.35v6.69c.92-.81 1.5-2.01 1.5-3.34z"/></svg>Broadcast</a>
+    <a class="nav-item" href="pengaturan.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>Pengaturan</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-info" ondblclick="logout()">
+      <div class="user-avatar" id="sidebarAvatar">A</div>
+      <div><div class="user-name" id="sidebarName">Pengguna</div><div class="user-role" id="sidebarRole">Peserta</div></div>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <button class="btn-back" onclick="history.back()">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+    </button>
+    <div class="topbar-title">
+      <h1>Konfirmasi Pendaftaran</h1>
+      <p>Periksa detail dan setujui syarat sebelum mendaftar</p>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="konfirmasi-wrap">
+
+      <!-- State: Loading -->
+      <div id="loadingState">
+        <div class="event-card">
+          <div class="event-banner" style="background:var(--gray-100);"></div>
+          <div class="event-body">
+            <div class="skeleton" style="width:60%;height:24px;margin-bottom:16px;"></div>
+            <div class="skeleton" style="width:40%;height:14px;margin-bottom:8px;"></div>
+            <div class="skeleton" style="width:50%;height:14px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- State: Form Konfirmasi -->
+      <div id="formState" class="hidden">
+
+        <!-- Detail Event -->
+        <div class="event-card">
+          <div class="event-banner" id="eventBanner">
+            <svg viewBox="0 0 24 24" fill="#94a3b8" style="width:48px;height:48px;opacity:0.3;"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+            <div class="event-banner-tag"><span class="event-tag" id="eventTag">-</span></div>
+          </div>
+          <div class="event-body">
+            <div class="event-name" id="eventNama">-</div>
+            <div class="event-info-grid">
+              <div class="info-item">
+                <span class="info-icon">📅</span>
+                <div><div class="info-label">Tanggal & Waktu</div><div class="info-val" id="eventTanggal">-</div></div>
+              </div>
+              <div class="info-item">
+                <span class="info-icon">📍</span>
+                <div><div class="info-label">Lokasi</div><div class="info-val" id="eventLokasi">-</div></div>
+              </div>
+              <div class="info-item">
+                <span class="info-icon">🏢</span>
+                <div><div class="info-label">Penyelenggara</div><div class="info-val" id="eventPenyelenggara">-</div></div>
+              </div>
+              <div class="info-item">
+                <span class="info-icon">👥</span>
+                <div><div class="info-label">Sisa Kursi</div><div class="info-val" id="eventSisa">-</div></div>
+              </div>
+            </div>
+            <div class="harga-badge">✅ Event Gratis — Tidak ada biaya pendaftaran</div>
+          </div>
+        </div>
+
+        <!-- Syarat & Ketentuan -->
+        <div class="persetujuan-card">
+          <div class="card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#1a56db"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+            Syarat & Ketentuan Pendaftaran
+          </div>
+          <div class="syarat-list">
+            <div class="syarat-item">
+              <span class="syarat-icon">📋</span>
+              <div class="syarat-text"><strong>Data yang valid</strong> — Pastikan akun kamu menggunakan identitas yang benar dan dapat dihubungi oleh penyelenggara.</div>
+            </div>
+            <div class="syarat-item">
+              <span class="syarat-icon">🎟️</span>
+              <div class="syarat-text"><strong>1 akun, 1 tiket</strong> — Setiap akun hanya dapat mendaftar satu kali untuk event yang sama.</div>
+            </div>
+            <div class="syarat-item">
+              <span class="syarat-icon">⏰</span>
+              <div class="syarat-text"><strong>Hadir tepat waktu</strong> — Peserta diharapkan hadir sesuai jadwal. Keterlambatan bisa menyebabkan penolakan masuk.</div>
+            </div>
+            <div class="syarat-item">
+              <span class="syarat-icon">🚫</span>
+              <div class="syarat-text"><strong>Pembatalan</strong> — Pendaftaran yang sudah dikonfirmasi dapat dibatalkan melalui menu "Event Saya" sebelum event dimulai.</div>
+            </div>
+          </div>
+
+          <!-- Checkbox Persetujuan -->
+          <label class="checkbox-wrap" id="checkboxWrap" onclick="toggleCheck()">
+            <input type="checkbox" id="checkPersetujuan" onclick="event.stopPropagation(); toggleCheck()"/>
+            <span class="checkbox-label">Saya telah membaca dan <strong>menyetujui syarat & ketentuan</strong> di atas, serta bersedia hadir pada event yang saya daftarkan.</span>
+          </label>
+
+          <div style="margin-top:12px;">
+            <div class="alert alert-error" id="alertError"></div>
+            <div class="alert alert-success" id="alertSuccess"></div>
+          </div>
+        </div>
+
+        <!-- Ringkasan -->
+        <div class="ringkasan-card">
+          <div class="ringkasan-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#1341b3"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+            Ringkasan Pendaftaran
+          </div>
+          <div class="ringkasan-row"><span>Event</span><span style="font-weight:600;color:var(--gray-800);text-align:right;max-width:60%;" id="ringkasanEvent">-</span></div>
+          <div class="ringkasan-row"><span>Tanggal</span><span id="ringkasanTanggal">-</span></div>
+          <div class="ringkasan-row"><span>Peserta</span><span id="ringkasanPeserta" style="font-weight:600;color:var(--gray-800);">-</span></div>
+          <div class="ringkasan-row"><span>Biaya Pendaftaran</span><span class="val-green">Gratis</span></div>
+        </div>
+
+        <!-- Tombol Aksi -->
+        <div class="action-wrap">
+          <button class="btn-batal" onclick="history.back()">← Kembali</button>
+          <button class="btn-konfirmasi" id="btnKonfirmasi" onclick="konfirmasiDaftar()" disabled>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+            Konfirmasi & Daftar Sekarang
+          </button>
+        </div>
+      </div>
+
+      <!-- State: Sukses -->
+      <div class="sukses-card" id="suksesState">
+        <div class="sukses-icon">🎉</div>
+        <div class="sukses-title">Pendaftaran Berhasil!</div>
+        <div class="sukses-sub">Kamu berhasil mendaftar event ini. Simpan kode tiket kamu dan tunjukkan saat check-in.</div>
+        <div class="kode-tiket-box" id="kodeTiketBox">-</div>
+        <br/>
+        <button class="btn-ke-tiket" onclick="window.location.href='tiket_saya.html'">
+          🎟️ Lihat Tiket Saya
+        </button>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script>
+if (!localStorage.getItem('token')) { window.location.href = 'login.html'; }
+
+var namaUser = localStorage.getItem('namaUser') || 'Pengguna';
+var roleUser  = localStorage.getItem('roleUser') || 'peserta';
+var idUser    = localStorage.getItem('idUser');
+
+// Sidebar init
+document.getElementById('sidebarName').textContent   = namaUser;
+document.getElementById('sidebarRole').textContent   = roleUser.charAt(0).toUpperCase() + roleUser.slice(1);
+document.getElementById('sidebarAvatar').textContent = namaUser.charAt(0).toUpperCase();
+
+if (roleUser === 'penyelenggara') {
+  document.getElementById('navTiket').classList.add('hidden');
+  document.getElementById('navCheckin').classList.add('hidden');
+  document.getElementById('navLaporan').classList.remove('hidden');
+  document.getElementById('navBroadcast').classList.remove('hidden');
+  document.getElementById('labelEventSaya').textContent = 'Event Dikelola';
+}
+
+// Ambil eventId dari URL
+var params  = new URLSearchParams(window.location.search);
+var eventId = params.get('eventId');
+if (!eventId) { window.location.href = 'semua_event.html'; }
+
+var eventData = null;
+var sudahCentang = false;
+
+// Load data event
+fetch('/api/events/' + eventId)
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (!data.success) { window.location.href = 'semua_event.html'; return; }
+    eventData = data.event;
+
+    // Kalau bukan gratis, redirect ke form_pendaftaran
+    if (eventData.tipeHarga !== 'free') {
+      window.location.href = 'form_pendaftaran.html?eventId=' + eventId;
+      return;
+    }
+
+    // Kalau penuh
+    if (eventData.terisi >= eventData.kapasitas) {
+      document.getElementById('loadingState').classList.add('hidden');
+      document.getElementById('formState').classList.remove('hidden');
+      renderEventDetail();
+      document.getElementById('btnKonfirmasi').disabled = true;
+      document.getElementById('btnKonfirmasi').textContent = '⚠️ Event Sudah Penuh';
+      showAlert('error', '⚠️ Maaf, event ini sudah penuh!');
+      return;
+    }
+
+    document.getElementById('loadingState').classList.add('hidden');
+    document.getElementById('formState').classList.remove('hidden');
+    renderEventDetail();
+  })
+  .catch(function() {
+    showToast('❌ Gagal memuat data event!', 'error');
+  });
+
+function renderEventDetail() {
+  var colors = {seminar:'#dbeafe',workshop:'#d1fae5',konferensi:'#ede9fe',webinar:'#fef3c7',bootcamp:'#fee2e2'};
+  var icons  = {seminar:'#3b82f6',workshop:'#10b981',konferensi:'#8b5cf6',webinar:'#f59e0b',bootcamp:'#ef4444'};
+  var kat    = eventData.kategori || '';
+
+  var banner = document.getElementById('eventBanner');
+  banner.style.background = colors[kat] || '#f1f5f9';
+  banner.innerHTML = '<svg viewBox="0 0 24 24" fill="' + (icons[kat]||'#94a3b8') + '" style="width:52px;height:52px;opacity:0.3;"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>'
+    + '<div class="event-banner-tag"><span class="event-tag tag-' + kat + '">' + (kat ? kat.charAt(0).toUpperCase()+kat.slice(1) : '-') + '</span></div>';
+
+  document.getElementById('eventNama').textContent          = eventData.nama;
+  document.getElementById('eventTanggal').textContent       = eventData.tanggal + ' · ' + eventData.waktu;
+  document.getElementById('eventLokasi').textContent        = (eventData.venue ? eventData.venue + ', ' : '') + eventData.lokasi;
+  document.getElementById('eventPenyelenggara').textContent = eventData.penyelenggara;
+  document.getElementById('eventSisa').textContent          = (eventData.kapasitas - eventData.terisi) + ' kursi tersisa';
+
+  document.getElementById('ringkasanEvent').textContent   = eventData.nama;
+  document.getElementById('ringkasanTanggal').textContent = eventData.tanggal + ' · ' + eventData.waktu;
+  document.getElementById('ringkasanPeserta').textContent = namaUser;
+}
+
+function toggleCheck() {
+  var cb = document.getElementById('checkPersetujuan');
+  var wrap = document.getElementById('checkboxWrap');
+  // Sinkronisasi state checkbox
+  sudahCentang = cb.checked;
+  if (sudahCentang) {
+    wrap.classList.add('checked');
+  } else {
+    wrap.classList.remove('checked');
+  }
+  document.getElementById('btnKonfirmasi').disabled = !sudahCentang;
+}
+
+function konfirmasiDaftar() {
+  if (!sudahCentang) {
+    showAlert('error', '⚠️ Kamu harus menyetujui syarat & ketentuan terlebih dahulu!');
+    return;
+  }
+
+  var btn = document.getElementById('btnKonfirmasi');
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="white" style="animation:spin 1s linear infinite"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 14.96 20 13.54 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 9.04 4 10.46 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg> Memproses...';
+  btn.disabled = true;
+
+  fetch('/api/events/daftar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId: parseInt(idUser), eventId: parseInt(eventId) })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.success) {
+      // Tampilkan state sukses
+      document.getElementById('formState').classList.add('hidden');
+      document.getElementById('suksesState').style.display = 'block';
+      document.getElementById('kodeTiketBox').textContent = data.kodeTiket;
+    } else {
+      showAlert('error', '⚠️ ' + data.message);
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Konfirmasi & Daftar Sekarang';
+      btn.disabled = false;
+    }
+  })
+  .catch(function() {
+    showAlert('error', '❌ Gagal konek ke server!');
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Konfirmasi & Daftar Sekarang';
+    btn.disabled = false;
+  });
+}
+
+function showAlert(type, msg) {
+  var errEl  = document.getElementById('alertError');
+  var succEl = document.getElementById('alertSuccess');
+  errEl.style.display  = 'none';
+  succEl.style.display = 'none';
+  if (type === 'error')   { errEl.textContent  = msg; errEl.style.display  = 'block'; }
+  if (type === 'success') { succEl.textContent = msg; succEl.style.display = 'block'; }
+}
+
+function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+
+function showToast(msg, type) {
+  type = type || 'info';
+  var wrap = document.getElementById('toast-wrap');
+  var t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  wrap.appendChild(t);
+  setTimeout(function() {
+    t.style.opacity = '0'; t.style.transition = 'opacity 0.3s';
+    setTimeout(function() { t.remove(); }, 300);
+  }, 3000);
+}
+</script>
+</body>
+</html>

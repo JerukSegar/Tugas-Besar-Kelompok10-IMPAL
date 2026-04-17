@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dashboard - EventHub</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{--primary:#1a56db;--primary-dark:#1341b3;--primary-light:#ebf1fd;--sidebar-bg:#0f2044;--sidebar-hover:rgba(255,255,255,0.07);--sidebar-active:rgba(255,255,255,0.14);--white:#ffffff;--gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;--gray-300:#cbd5e1;--gray-400:#94a3b8;--gray-500:#64748b;--gray-600:#475569;--gray-700:#334155;--gray-800:#1e293b;--success:#10b981;--success-light:#d1fae5;--warning:#f59e0b;--danger:#ef4444;--danger-light:#fee2e2;--font:'Plus Jakarta Sans',sans-serif;--shadow-sm:0 1px 3px rgba(0,0,0,0.07);--shadow-md:0 4px 16px rgba(0,0,0,0.1);--radius-sm:6px;--radius:10px;--radius-lg:14px;--sidebar-w:220px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--gray-50);color:var(--gray-800);display:flex;min-height:100vh;font-size:14px;}
+button{cursor:pointer;font-family:var(--font);border:none;outline:none;}
+.sidebar{width:var(--sidebar-w);min-height:100vh;background:var(--sidebar-bg);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;}
+.sidebar-brand{display:flex;align-items:center;gap:10px;padding:22px 18px 18px;border-bottom:1px solid rgba(255,255,255,0.07);}
+.brand-icon{width:36px;height:36px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(26,86,219,0.4);}
+.brand-icon svg{width:20px;height:20px;fill:white;}
+.brand-name{font-size:17px;font-weight:700;color:white;}
+.sidebar-nav{flex:1;padding:14px 10px;display:flex;flex-direction:column;gap:2px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);color:rgba(255,255,255,0.6);font-size:13.5px;font-weight:500;cursor:pointer;transition:all 0.18s;text-decoration:none;}
+.nav-item:hover{background:var(--sidebar-hover);color:rgba(255,255,255,0.9);}
+.nav-item.active{background:var(--sidebar-active);color:white;font-weight:600;}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:0.8;}
+.nav-item.active svg{opacity:1;}
+.sidebar-footer{padding:14px 10px;border-top:1px solid rgba(255,255,255,0.07);}
+.user-info{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);cursor:pointer;}
+.user-info:hover{background:var(--sidebar-hover);}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:white;flex-shrink:0;}
+.user-name{font-size:13px;font-weight:600;color:white;}
+.user-role{font-size:11px;color:rgba(255,255,255,0.4);}
+.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;background:var(--white);border-bottom:1px solid var(--gray-200);position:sticky;top:0;z-index:50;}
+.topbar-left h1{font-size:18px;font-weight:700;}
+.topbar-left p{font-size:13px;color:var(--gray-500);margin-top:1px;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+
+/* ===== NOTIFIKASI BELL ===== */
+.notif-wrapper{position:relative;}
+.icon-btn{width:36px;height:36px;border-radius:var(--radius-sm);background:var(--gray-100);display:flex;align-items:center;justify-content:center;border:1px solid var(--gray-200);color:var(--gray-500);cursor:pointer;position:relative;transition:background 0.15s;}
+.icon-btn:hover{background:var(--gray-200);}
+.icon-btn svg{width:16px;height:16px;}
+.notif-badge{position:absolute;top:-5px;right:-5px;background:var(--danger);color:white;font-size:10px;font-weight:700;border-radius:999px;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;padding:0 4px;border:2px solid white;animation:popIn 0.3s ease;}
+@keyframes popIn{from{transform:scale(0);}to{transform:scale(1);}}
+
+/* ===== DROPDOWN NOTIFIKASI ===== */
+.notif-dropdown{position:absolute;top:calc(100% + 8px);right:0;width:360px;background:white;border:1px solid var(--gray-200);border-radius:var(--radius-lg);box-shadow:0 8px 32px rgba(0,0,0,0.12);z-index:999;overflow:hidden;display:none;}
+.notif-dropdown.open{display:block;animation:fadeDown 0.2s ease;}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:none;}}
+.notif-header{padding:14px 16px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between;}
+.notif-header-title{font-size:14px;font-weight:700;color:var(--gray-800);}
+.notif-clear-btn{font-size:11px;color:var(--primary);background:none;border:none;cursor:pointer;font-weight:600;padding:0;}
+.notif-clear-btn:hover{text-decoration:underline;}
+.notif-list{max-height:340px;overflow-y:auto;}
+.notif-item{padding:12px 16px;border-bottom:1px solid var(--gray-100);cursor:default;transition:background 0.15s;}
+.notif-item:hover{background:var(--gray-50);}
+.notif-item:last-child{border-bottom:none;}
+.notif-item-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px;}
+.notif-judul{font-size:13px;font-weight:700;color:var(--gray-800);line-height:1.3;}
+.notif-time{font-size:11px;color:var(--gray-400);white-space:nowrap;flex-shrink:0;}
+.notif-event-tag{font-size:10px;font-weight:600;color:var(--primary);background:var(--primary-light);padding:2px 7px;border-radius:99px;display:inline-block;margin-bottom:4px;}
+.notif-pesan{font-size:12px;color:var(--gray-600);line-height:1.5;}
+.notif-empty{padding:32px 16px;text-align:center;color:var(--gray-400);}
+.notif-empty svg{width:36px;height:36px;margin:0 auto 8px;display:block;opacity:0.3;}
+.notif-empty p{font-size:13px;}
+.notif-footer{padding:10px 16px;border-top:1px solid var(--gray-100);text-align:center;}
+.notif-footer a{font-size:12px;color:var(--primary);font-weight:600;text-decoration:none;}
+.notif-footer a:hover{text-decoration:underline;}
+
+.btn-logout{padding:8px 16px;background:var(--danger-light);color:var(--danger);border-radius:var(--radius-sm);font-size:12px;font-weight:600;}
+.btn-logout:hover{background:var(--danger);color:white;}
+.content{padding:24px 28px;display:flex;flex-direction:column;gap:24px;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+.stat-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:18px 20px;box-shadow:var(--shadow-sm);}
+.stat-label{font-size:12px;font-weight:600;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;}
+.stat-value{font-size:28px;font-weight:800;color:var(--gray-800);}
+.stat-value.blue{color:var(--primary);}
+.stat-value.green{color:var(--success);}
+.stat-value.orange{color:var(--warning);}
+.section-header{display:flex;align-items:center;justify-content:space-between;}
+.section-title{font-size:17px;font-weight:700;color:var(--gray-800);}
+.btn-lihat-semua{padding:7px 16px;background:var(--primary-light);color:var(--primary-dark);border-radius:var(--radius-sm);font-size:12px;font-weight:600;text-decoration:none;}
+.btn-lihat-semua:hover{background:var(--primary);color:white;}
+.btn-buat-event{padding:9px 18px;background:var(--primary);color:white;border-radius:var(--radius-sm);font-size:13px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:6px;}
+.btn-buat-event:hover{background:var(--primary-dark);}
+.events-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.event-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);transition:transform 0.2s,box-shadow 0.2s;}
+.event-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
+.event-thumb{height:90px;display:flex;align-items:center;justify-content:center;}
+.event-body{padding:14px;}
+.event-tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;padding:3px 9px;border-radius:20px;margin-bottom:8px;}
+.tag-seminar{background:#dbeafe;color:#1d4ed8;}
+.tag-workshop{background:#d1fae5;color:#065f46;}
+.tag-konferensi{background:#ede9fe;color:#5b21b6;}
+.tag-webinar{background:#fef3c7;color:#92400e;}
+.tag-bootcamp{background:#fee2e2;color:#991b1b;}
+.event-name{font-size:14px;font-weight:700;color:var(--gray-800);margin-bottom:4px;line-height:1.3;}
+.event-meta{font-size:12px;color:var(--gray-500);margin-bottom:10px;}
+.event-footer{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid var(--gray-100);}
+.price-free{font-size:13px;font-weight:600;color:var(--success);}
+.price-paid{font-size:13px;font-weight:600;color:var(--primary);}
+.price-full{font-size:13px;font-weight:600;color:var(--danger);}
+.btn-daftar{padding:6px 16px;background:var(--primary);color:white;border-radius:var(--radius-sm);font-size:12px;font-weight:600;}
+.btn-daftar:hover{background:var(--primary-dark);}
+.btn-daftar:disabled{background:var(--gray-300);cursor:not-allowed;}
+.empty-state{text-align:center;padding:40px 20px;color:var(--gray-400);}
+.empty-state h3{font-size:15px;font-weight:600;color:var(--gray-500);margin-bottom:6px;}
+.capacity-bar{height:4px;background:var(--gray-200);border-radius:2px;overflow:hidden;margin-bottom:10px;}
+.capacity-fill{height:100%;border-radius:2px;}
+.fill-ok{background:var(--primary);}
+.fill-warn{background:var(--warning);}
+.fill-full{background:var(--danger);}
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+.toast{display:flex;align-items:center;gap:10px;padding:12px 18px;background:var(--gray-800);color:white;border-radius:var(--radius);font-size:13px;font-weight:500;box-shadow:var(--shadow-md);animation:slideIn 0.3s ease;}
+.toast.success{background:#065f46;}
+.toast.error{background:#991b1b;}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:none;}}
+.hidden{display:none!important;}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5C3.9 4 3 4.9 3 6v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM5 7V6h14v1H5zm2 4h10v2H7v-2zm0 4h7v2H7v-2z"/></svg></div>
+    <span class="brand-name">EventHub</span>
+  </div>
+  <nav class="sidebar-nav">
+    <a class="nav-item active" href="dashboard.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>Dashboard</a>
+    <a class="nav-item" href="semua_event.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>Semua Event</a>
+    <a class="nav-item" href="event_saya.html" id="navEventSaya"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg><span id="labelEventSaya">Event Saya</span></a>
+    <a class="nav-item" href="tiket_saya.html" id="navTiket"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 10V6c0-1.11-.9-2-2-2H4c-1.1 0-1.99.89-1.99 2v4c1.1 0 1.99.9 1.99 2s-.89 2-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2s.9-2 2-2z"/></svg>Tiket Saya</a>
+    <a class="nav-item" href="checkin_saya.html" id="navCheckin"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>Check-In</a>
+    <a class="nav-item hidden" href="laporan.html" id="navLaporan"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>Laporan</a>
+    <a class="nav-item hidden" href="broadcast.html" id="navBroadcast"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 11v2h4v-2h-4zm-2 6.61c.96.71 2.21 1.65 3.2 2.39.4-.53.8-1.07 1.2-1.6-.99-.74-2.24-1.68-3.2-2.4-.4.54-.8 1.08-1.2 1.61zM20.4 5.6c-.4-.53-.8-1.07-1.2-1.6-.99.74-2.24 1.68-3.2 2.4.4.53.8 1.07 1.2 1.6.96-.72 2.21-1.65 3.2-2.4zM4 9c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h1v4h2v-4h1l5 3V6L8 9H4zm11.5 3c0-1.33-.58-2.53-1.5-3.35v6.69c.92-.81 1.5-2.01 1.5-3.34z"/></svg>Broadcast</a>
+    <a class="nav-item" href="pengaturan.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>Pengaturan</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-info" ondblclick="logout()">
+      <div class="user-avatar" id="sidebarAvatar">A</div>
+      <div><div class="user-name" id="sidebarName">Pengguna</div><div class="user-role" id="sidebarRole">Peserta</div></div>
+    </div>
+  </div>
+</aside>
+
+
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1>Dashboard</h1>
+      <p id="welcomeMsg">Selamat datang kembali!</p>
+    </div>
+    <div class="topbar-right">
+
+      <!-- ===== BELL NOTIFIKASI ===== -->
+      <div class="notif-wrapper" id="notifWrapper">
+        <button class="icon-btn" id="bellBtn" onclick="toggleNotif()" title="Notifikasi">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+          <span class="notif-badge hidden" id="notifBadge">0</span>
+        </button>
+
+        <div class="notif-dropdown" id="notifDropdown">
+          <div class="notif-header">
+            <span class="notif-header-title">🔔 Notifikasi</span>
+            <button class="notif-clear-btn" onclick="markAllRead()">Tandai semua dibaca</button>
+          </div>
+          <div class="notif-list" id="notifList">
+            <div class="notif-empty">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+              <p>Belum ada notifikasi</p>
+            </div>
+          </div>
+          <div class="notif-footer">
+            <a href="notifikasi.html">Lihat semua notifikasi →</a>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-logout" onclick="logout()">Keluar</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="stats" id="statsArea"></div>
+
+    <div class="section-header">
+      <div class="section-title" id="sectionTitle">Event Mendatang</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <a href="event_saya.html" id="btnBuatEvent" class="btn-buat-event hidden">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+          Buat Event Baru
+        </a>
+        <a href="semua_event.html" class="btn-lihat-semua">Lihat Semua</a>
+      </div>
+    </div>
+
+    <div class="events-grid" id="eventsGrid">
+      <div class="empty-state"><h3>Memuat event...</h3></div>
+    </div>
+  </div>
+</main>
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script>
+if (!localStorage.getItem('token')) { window.location.href = 'login.html'; }
+
+const namaUser = localStorage.getItem('namaUser') || 'Pengguna';
+const roleUser = localStorage.getItem('roleUser') || 'peserta';
+const idUser   = localStorage.getItem('idUser');
+
+document.getElementById('sidebarName').textContent = namaUser;
+document.getElementById('sidebarRole').textContent = roleUser.charAt(0).toUpperCase() + roleUser.slice(1);
+document.getElementById('sidebarAvatar').textContent = namaUser.charAt(0).toUpperCase();
+document.getElementById('welcomeMsg').textContent = 'Selamat datang kembali, ' + namaUser + '!';
+
+// ======================================================
+// NOTIFIKASI — hanya peserta yang fetch
+// ======================================================
+let notifData = [];
+// ID notifikasi yang sudah dibaca, simpan di localStorage
+let readIds = new Set(JSON.parse(localStorage.getItem('readNotifIds') || '[]'));
+
+function saveReadIds() {
+  localStorage.setItem('readNotifIds', JSON.stringify([...readIds]));
+}
+
+async function loadNotifikasi() {
+  // Hanya peserta yang dapat notifikasi dari broadcast
+  if (roleUser !== 'peserta') return;
+
+  try {
+    const res = await fetch('/api/notifikasi/peserta/' + idUser);
+    if (!res.ok) return;
+    notifData = await res.json();
+    renderNotifDropdown();
+  } catch (e) {
+    console.error('Gagal load notifikasi:', e);
+  }
+}
+
+function renderNotifDropdown() {
+  const list  = document.getElementById('notifList');
+  const badge = document.getElementById('notifBadge');
+
+  if (!notifData || notifData.length === 0) {
+    list.innerHTML = `<div class="notif-empty">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+      <p>Belum ada notifikasi</p></div>`;
+    badge.classList.add('hidden');
+    return;
+  }
+
+  // Hitung yang belum dibaca
+  const unread = notifData.filter(n => !readIds.has(String(n.id))).length;
+  if (unread > 0) {
+    badge.textContent = unread > 99 ? '99+' : unread;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+
+  list.innerHTML = notifData.map(n => {
+    const isRead = readIds.has(String(n.id));
+    const tgl = n.dibuatAt ? formatTanggal(n.dibuatAt) : '';
+    return `<div class="notif-item" style="${isRead ? '' : 'background:#f0f6ff;border-left:3px solid var(--primary);'}" onclick="markRead(${n.id})">
+      <div class="notif-item-header">
+        <span class="notif-judul">${escHtml(n.judul)}</span>
+        <span class="notif-time">${tgl}</span>
+      </div>
+      <span class="notif-event-tag">📅 ${escHtml(n.namaEvent || '-')}</span>
+      <div class="notif-pesan">${escHtml(n.pesan)}</div>
+    </div>`;
+  }).join('');
+}
+
+function markRead(id) {
+  readIds.add(String(id));
+  saveReadIds();
+  renderNotifDropdown();
+}
+
+function markAllRead() {
+  notifData.forEach(n => readIds.add(String(n.id)));
+  saveReadIds();
+  renderNotifDropdown();
+  showToast('✅ Semua notifikasi ditandai dibaca', 'success');
+}
+
+function toggleNotif() {
+  const dd = document.getElementById('notifDropdown');
+  dd.classList.toggle('open');
+  // Tutup dropdown kalau klik di luar
+  if (dd.classList.contains('open')) {
+    setTimeout(() => {
+      document.addEventListener('click', closeNotifOutside, { once: true });
+    }, 10);
+  }
+}
+
+function closeNotifOutside(e) {
+  const wrapper = document.getElementById('notifWrapper');
+  if (!wrapper.contains(e.target)) {
+    document.getElementById('notifDropdown').classList.remove('open');
+  }
+}
+
+function formatTanggal(raw) {
+  try {
+    const d = new Date(raw);
+    const now = new Date();
+    const diffMs = now - d;
+    const diffMnt = Math.floor(diffMs / 60000);
+    const diffJam = Math.floor(diffMnt / 60);
+    const diffHari = Math.floor(diffJam / 24);
+    if (diffMnt < 1)   return 'Baru saja';
+    if (diffMnt < 60)  return diffMnt + ' mnt lalu';
+    if (diffJam < 24)  return diffJam + ' jam lalu';
+    if (diffHari < 7)  return diffHari + ' hari lalu';
+    return d.toLocaleDateString('id-ID', { day:'numeric', month:'short' });
+  } catch { return ''; }
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ======================================================
+
+if (roleUser === 'penyelenggara') {
+  document.getElementById('navTiket').classList.add('hidden');
+  document.getElementById('navCheckin').classList.add('hidden');
+  document.getElementById('navLaporan').classList.remove('hidden');
+  document.getElementById('navBroadcast').classList.remove('hidden');
+  document.getElementById('labelEventSaya').textContent = 'Event Dikelola';
+  document.getElementById('btnBuatEvent').classList.remove('hidden');
+  document.getElementById('sectionTitle').textContent = 'Semua Event';
+  // Bell tidak perlu untuk penyelenggara — sembunyikan saja
+  document.getElementById('notifWrapper').classList.add('hidden');
+  renderStatsPenyelenggara();
+  loadAllEvents();
+} else {
+  document.getElementById('navLaporan').classList.add('hidden');
+  document.getElementById('navBroadcast').classList.add('hidden');
+  renderStatsPeserta();
+  loadAllEvents();
+  loadNotifikasi(); // ✅ fetch notifikasi peserta
+  // Refresh notifikasi tiap 60 detik (polling ringan)
+  setInterval(loadNotifikasi, 60000);
+}
+
+function renderStatsPeserta() {
+  fetch('/api/events')
+    .then(r => r.json())
+    .then(events => {
+      const total = events.length;
+      fetch('/api/events/saya/' + idUser)
+        .then(r => r.json())
+        .then(myEvents => {
+          const terdaftar = myEvents.length;
+          const upcoming  = myEvents.filter(e => e.status === 'upcoming').length;
+          const selesai   = myEvents.filter(e => e.status === 'done').length;
+          document.getElementById('statsArea').innerHTML = `
+            <div class="stat-card"><div class="stat-label">Event Tersedia</div><div class="stat-value">${total}</div></div>
+            <div class="stat-card"><div class="stat-label">Terdaftar</div><div class="stat-value blue">${terdaftar}</div></div>
+            <div class="stat-card"><div class="stat-label">Tiket Aktif</div><div class="stat-value green">${upcoming}</div></div>
+            <div class="stat-card"><div class="stat-label">Selesai Dihadiri</div><div class="stat-value">${selesai}</div></div>`;
+        });
+    });
+}
+
+function renderStatsPenyelenggara() {
+  fetch('/api/events/kelola/' + idUser)
+    .then(r => r.json())
+    .then(events => {
+      const total          = events.length;
+      const totalKapasitas = events.reduce((a, b) => a + b.kapasitas, 0);
+
+      if (total === 0) {
+        document.getElementById('statsArea').innerHTML =
+          '<div class="stat-card"><div class="stat-label">Event Dikelola</div><div class="stat-value">0</div></div>' +
+          '<div class="stat-card"><div class="stat-label">Total Peserta</div><div class="stat-value blue">0</div></div>' +
+          '<div class="stat-card"><div class="stat-label">Total Kapasitas</div><div class="stat-value green">' + totalKapasitas + '</div></div>' +
+          '<div class="stat-card"><div class="stat-label">Tingkat Terisi</div><div class="stat-value orange">0%</div></div>';
+        return;
+      }
+
+      // Hitung peserta real-time dari setiap event, bukan dari field terisi yang bisa stale
+      Promise.all(events.map(function(ev) {
+        return fetch('/api/events/peserta/' + ev.id)
+          .then(function(r) { return r.json(); })
+          .then(function(data) { return data.total || 0; })
+          .catch(function() { return 0; });
+      })).then(function(counts) {
+        const totalPeserta = counts.reduce(function(a, b) { return a + b; }, 0);
+        const pct = totalKapasitas > 0 ? Math.round(totalPeserta / totalKapasitas * 100) : 0;
+        document.getElementById('statsArea').innerHTML =
+          '<div class="stat-card"><div class="stat-label">Event Dikelola</div><div class="stat-value">' + total + '</div></div>' +
+          '<div class="stat-card"><div class="stat-label">Total Peserta</div><div class="stat-value blue">' + totalPeserta + '</div></div>' +
+          '<div class="stat-card"><div class="stat-label">Total Kapasitas</div><div class="stat-value green">' + totalKapasitas + '</div></div>' +
+          '<div class="stat-card"><div class="stat-label">Tingkat Terisi</div><div class="stat-value orange">' + pct + '%</div></div>';
+      });
+    });
+}
+
+function loadAllEvents() {
+  fetch('/api/events')
+    .then(r => r.json())
+    .then(events => {
+      const grid = document.getElementById('eventsGrid');
+      if (!events.length) {
+        grid.innerHTML = '<div class="empty-state"><h3>Belum ada event tersedia</h3></div>';
+        return;
+      }
+      const shown = events.slice(0, 6);
+      grid.innerHTML = shown.map(ev => {
+        const pct       = Math.round(ev.terisi / ev.kapasitas * 100);
+        const isFull    = ev.terisi >= ev.kapasitas;
+        const fillClass = pct >= 100 ? 'fill-full' : pct >= 80 ? 'fill-warn' : 'fill-ok';
+        const priceHtml = isFull ? `<span class="price-full">Penuh</span>`
+          : ev.tipeHarga === 'free' ? `<span class="price-free">Gratis</span>`
+          : `<span class="price-paid">${ev.harga}</span>`;
+        return `<div class="event-card">
+          <div class="event-thumb" style="background:${thumbColor(ev.kategori)};">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="${thumbIcon(ev.kategori)}" opacity="0.4"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+          </div>
+          <div class="event-body">
+            <span class="event-tag tag-${ev.kategori}">${cap(ev.kategori)}</span>
+            <div class="event-name">${ev.nama}</div>
+            <div class="event-meta">📅 ${ev.tanggal} · 📍 ${ev.lokasi}</div>
+            <div class="capacity-bar"><div class="capacity-fill ${fillClass}" style="width:${pct}%"></div></div>
+            <div class="event-footer">${priceHtml}
+              <button class="btn-daftar" ${isFull ? 'disabled' : ''} onclick="daftar(${ev.id}, '${ev.tipeHarga}')">${isFull ? 'Penuh' : 'Daftar'}</button>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    })
+    .catch(() => {
+      document.getElementById('eventsGrid').innerHTML = '<div class="empty-state"><h3>Gagal memuat event</h3></div>';
+    });
+}
+
+function daftar(eventId, tipeHarga) {
+  if (!idUser) { showToast('Silakan login dulu!', 'error'); return; }
+  if (tipeHarga === 'paid') {
+    window.location.href = 'form_pendaftaran.html?eventId=' + eventId;
+    return;
+  }
+  fetch('/api/events/daftar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId: idUser, eventId: eventId })
+  })
+  .then(r => r.json())
+  .then(data => {
+    showToast((data.success ? '✅ ' : '⚠️ ') + data.message, data.success ? 'success' : 'error');
+    if (data.success) { loadAllEvents(); renderStatsPeserta(); }
+  })
+  .catch(() => showToast('❌ Gagal konek ke server!', 'error'));
+}
+
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+function thumbColor(k) { return {seminar:'#dbeafe',workshop:'#d1fae5',konferensi:'#ede9fe',webinar:'#fef3c7',bootcamp:'#fee2e2'}[k] || '#f1f5f9'; }
+function thumbIcon(k) { return {seminar:'#3b82f6',workshop:'#10b981',konferensi:'#8b5cf6',webinar:'#f59e0b',bootcamp:'#ef4444'}[k] || '#94a3b8'; }
+
+function logout() {
+  if (confirm('Keluar dari EventHub?')) {
+    localStorage.clear();
+    window.location.href = 'login.html';
+  }
+}
+
+function showToast(msg, type = 'info') {
+  const wrap = document.getElementById('toast-wrap');
+  const t    = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  wrap.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 3000);
+}
+</script>
+</body>
+</html>

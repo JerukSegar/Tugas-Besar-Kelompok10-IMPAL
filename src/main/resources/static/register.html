@@ -123,36 +123,43 @@
   </div>
 
   <script>
+    if (localStorage.getItem('token')) { window.location.href = 'dashboard.html'; }
+
     function handleRegister() {
-      const nama = document.getElementById('nama').value;
-      const email = document.getElementById('email').value;
+      const nama = document.getElementById('nama').value.trim();
+      const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
       const role = document.getElementById('role').value;
-
-      if (!nama || !email || !password) {
-        alert('Semua field wajib diisi!');
-        return;
-      }
-      if (password.length < 6) {
-        alert('Password minimal 6 karakter!');
-        return;
-      }
-
+      if (!nama || !email || !password) { showNotif('Semua field wajib diisi!', false); return; }
+      if (password.length < 6) { showNotif('Password minimal 6 karakter!', false); return; }
+      const btn = document.querySelector('.btn-primary');
+      btn.textContent = 'Memproses...'; btn.disabled = true;
       fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nama, email, password, role })
       })
-      .then(res => res.json())
+      .then(r => r.json())
       .then(data => {
         if (data.success) {
-          alert('Akun berhasil dibuat! Silakan login.');
-          window.location.href = 'login.html';
+          showNotif('Akun berhasil dibuat! Mengalihkan...', true);
+          setTimeout(() => window.location.href = 'login.html', 1500);
         } else {
-          alert(data.message || 'Gagal mendaftar!');
+          showNotif(data.message || 'Gagal mendaftar!', false);
+          btn.textContent = 'Daftar Sekarang'; btn.disabled = false;
         }
       })
-      .catch(() => alert('Gagal konek ke server!'));
+      .catch(() => { showNotif('Gagal konek ke server!', false); btn.textContent = 'Daftar Sekarang'; btn.disabled = false; });
+    }
+
+    function showNotif(msg, ok) {
+      let el = document.getElementById('notif');
+      if (!el) { el = document.createElement('div'); el.id = 'notif';
+        el.style.cssText = 'padding:10px 14px;border-radius:8px;font-size:13.5px;margin-bottom:12px;';
+        document.querySelector('.form-title').after(el); }
+      el.style.background = ok ? '#d1fae5' : '#fee2e2';
+      el.style.color = ok ? '#065f46' : '#b91c1c';
+      el.textContent = msg;
     }
   </script>
 </body>

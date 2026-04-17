@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notifikasi — EventHub</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#1a56db;--primary-dark:#1341b3;--primary-light:#ebf1fd;
+  --sidebar-bg:#0f2044;--sidebar-hover:rgba(255,255,255,0.07);--sidebar-active:rgba(255,255,255,0.14);
+  --white:#ffffff;--gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;
+  --gray-300:#cbd5e1;--gray-400:#94a3b8;--gray-500:#64748b;--gray-600:#475569;
+  --gray-700:#334155;--gray-800:#1e293b;
+  --success:#10b981;--success-light:#d1fae5;
+  --danger:#ef4444;--danger-light:#fee2e2;--warning:#f59e0b;
+  --font:'Plus Jakarta Sans',sans-serif;
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.07);--shadow-md:0 4px 16px rgba(0,0,0,0.1);
+  --radius-sm:6px;--radius:10px;--radius-lg:14px;--sidebar-w:220px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--gray-50);color:var(--gray-800);display:flex;min-height:100vh;font-size:14px;}
+button{cursor:pointer;font-family:var(--font);border:none;outline:none;}
+a{text-decoration:none;}
+
+/* ===== SIDEBAR ===== */
+.sidebar{width:var(--sidebar-w);min-height:100vh;background:var(--sidebar-bg);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;}
+.sidebar-brand{display:flex;align-items:center;gap:10px;padding:22px 18px 18px;border-bottom:1px solid rgba(255,255,255,0.07);}
+.brand-icon{width:36px;height:36px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(26,86,219,0.4);}
+.brand-icon svg{width:20px;height:20px;fill:white;}
+.brand-name{font-size:17px;font-weight:700;color:white;}
+.sidebar-nav{flex:1;padding:14px 10px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);color:rgba(255,255,255,0.6);font-size:13.5px;font-weight:500;cursor:pointer;transition:all 0.18s;text-decoration:none;}
+.nav-item:hover{background:var(--sidebar-hover);color:rgba(255,255,255,0.9);}
+.nav-item.active{background:var(--sidebar-active);color:white;font-weight:600;}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:0.8;}
+.nav-item.active svg{opacity:1;}
+.sidebar-footer{padding:14px 10px;border-top:1px solid rgba(255,255,255,0.07);}
+.user-info{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;border-radius:var(--radius-sm);}
+.user-info:hover{background:var(--sidebar-hover);}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:white;flex-shrink:0;}
+.user-name{font-size:13px;font-weight:600;color:white;}
+.user-role{font-size:11px;color:rgba(255,255,255,0.4);}
+
+/* ===== MAIN ===== */
+.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-width:0;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;background:var(--white);border-bottom:1px solid var(--gray-200);position:sticky;top:0;z-index:50;}
+.topbar-left h1{font-size:18px;font-weight:700;}
+.topbar-left p{font-size:13px;color:var(--gray-500);margin-top:1px;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.btn-mark-all{padding:8px 16px;background:var(--primary-light);color:var(--primary-dark);border-radius:var(--radius-sm);font-size:12px;font-weight:600;border:none;cursor:pointer;transition:all 0.15s;}
+.btn-mark-all:hover{background:var(--primary);color:white;}
+.content{padding:24px 28px;flex:1;}
+
+/* ===== FILTER BAR ===== */
+.filter-bar{display:flex;align-items:center;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.filter-btn{padding:7px 16px;border-radius:99px;font-size:12px;font-weight:600;border:1.5px solid var(--gray-200);background:var(--white);color:var(--gray-500);cursor:pointer;transition:all 0.15s;display:inline-flex;align-items:center;gap:6px;}
+.filter-btn:hover{border-color:var(--primary);color:var(--primary);}
+.filter-btn.active{background:var(--primary);color:white;border-color:var(--primary);}
+.filter-count{display:inline-flex;align-items:center;justify-content:center;border-radius:99px;min-width:18px;height:18px;font-size:10px;font-weight:700;padding:0 5px;background:rgba(255,255,255,0.25);}
+.filter-btn:not(.active) .filter-count{background:var(--gray-200);color:var(--gray-600);}
+
+/* ===== NOTIFIKASI LIST ===== */
+.notif-list{display:flex;flex-direction:column;gap:10px;}
+.notif-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:18px 20px;cursor:pointer;transition:all 0.18s;display:flex;gap:14px;align-items:flex-start;}
+.notif-card:hover{box-shadow:var(--shadow-md);transform:translateY(-1px);}
+.notif-card.unread{background:#f0f6ff;border-left:3px solid var(--primary);}
+.notif-card.unread:hover{background:#e8f0fe;}
+.notif-icon{width:42px;height:42px;border-radius:10px;background:var(--primary-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;}
+.notif-body{flex:1;min-width:0;}
+.notif-header-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:6px;}
+.notif-judul{font-size:14px;font-weight:700;color:var(--gray-800);line-height:1.3;}
+.notif-card.unread .notif-judul{color:var(--primary-dark);}
+.notif-time{font-size:11px;color:var(--gray-400);white-space:nowrap;flex-shrink:0;margin-top:2px;}
+.notif-event-tag{display:inline-flex;align-items:center;gap:5px;background:var(--primary-light);color:var(--primary-dark);border-radius:99px;padding:3px 10px;font-size:11px;font-weight:600;margin-bottom:8px;}
+.notif-pesan{font-size:13px;color:var(--gray-600);line-height:1.6;}
+.unread-dot{width:9px;height:9px;border-radius:50%;background:var(--primary);flex-shrink:0;margin-top:5px;}
+
+/* ===== EMPTY STATE ===== */
+.empty-state{text-align:center;padding:80px 20px;background:var(--white);border-radius:var(--radius-lg);border:1px solid var(--gray-200);}
+.empty-icon{font-size:52px;display:block;margin-bottom:16px;}
+.empty-state h3{font-size:16px;font-weight:600;color:var(--gray-600);margin-bottom:6px;}
+.empty-state p{font-size:13px;color:var(--gray-400);}
+
+/* ===== SKELETON ===== */
+.skel-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:18px 20px;display:flex;gap:14px;margin-bottom:10px;}
+.skel-icon{width:42px;height:42px;border-radius:10px;flex-shrink:0;}
+.skel-body{flex:1;}
+.skel-line{height:12px;border-radius:4px;margin-bottom:10px;}
+.skel-line.w-60{width:60%;}
+.skel-line.w-40{width:40%;}
+.skel-line.w-80{width:80%;}
+.skel-line.w-full{width:100%;}
+.skeleton{background:linear-gradient(90deg,var(--gray-100) 25%,var(--gray-200) 50%,var(--gray-100) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;}
+@keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+
+/* ===== TOAST ===== */
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+.toast{display:flex;align-items:center;gap:10px;padding:12px 18px;background:var(--gray-800);color:white;border-radius:var(--radius);font-size:13px;font-weight:500;box-shadow:var(--shadow-md);animation:slideIn 0.3s ease;}
+.toast.success{background:#065f46;}
+.toast.error{background:#991b1b;}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:none;}}
+.hidden{display:none!important;}
+</style>
+</head>
+<body>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">
+      <svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5C3.9 4 3 4.9 3 6v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM5 7V6h14v1H5zm2 4h10v2H7v-2zm0 4h7v2H7v-2z"/></svg>
+    </div>
+    <span class="brand-name">EventHub</span>
+  </div>
+  <nav class="sidebar-nav">
+    <a class="nav-item" href="dashboard.html">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>Dashboard
+    </a>
+    <a class="nav-item" href="semua_event.html">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>Semua Event
+    </a>
+    <a class="nav-item" href="event_saya.html" id="navEventSaya">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>Event Saya
+    </a>
+    <a class="nav-item" href="tiket_saya.html" id="navTiket">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 10V6c0-1.11-.9-2-2-2H4c-1.1 0-1.99.89-1.99 2v4c1.1 0 1.99.9 1.99 2s-.89 2-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2s.9-2 2-2z"/></svg>Tiket Saya
+    </a>
+    <a class="nav-item" href="Checkin_saya.html" id="navCheckin">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>Check-In
+    </a>
+    <a class="nav-item" href="sertifikat_saya.html" id="navSertifikat">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 008 20c3 0 7-3.5 6-8 0 0 2 4 0 8 1.28.56 2.82 1 5 1 .5-3.5-1-7.9-2-10z"/></svg>Sertifikat
+    </a>
+    <a class="nav-item hidden" href="laporan.html" id="navLaporan">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>Laporan
+    </a>
+    <a class="nav-item hidden" href="broadcast.html" id="navBroadcast">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 11v2h4v-2h-4zm-2 6.61c.96.71 2.21 1.65 3.2 2.39.4-.53.8-1.07 1.2-1.6-.99-.74-2.24-1.68-3.2-2.4-.4.54-.8 1.08-1.2 1.61zM20.4 5.6c-.4-.53-.8-1.07-1.2-1.6-.99.74-2.24 1.68-3.2 2.4.4.53.8 1.07 1.2 1.6.96-.72 2.21-1.65 3.2-2.4zM4 9c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h1v4h2v-4h1l5 3V6L8 9H4zm11.5 3c0-1.33-.58-2.53-1.5-3.35v6.69c.92-.81 1.5-2.01 1.5-3.34z"/></svg>Broadcast
+    </a>
+    <a class="nav-item" href="pengaturan.html">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>Pengaturan
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-info" ondblclick="logout()">
+      <div class="user-avatar" id="sidebarAvatar">A</div>
+      <div>
+        <div class="user-name" id="sidebarName">Pengguna</div>
+        <div class="user-role" id="sidebarRole">Peserta</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ===== MAIN ===== -->
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1>&#x1F514; Notifikasi</h1>
+      <p id="subTitle">Semua notifikasi dari event yang kamu ikuti</p>
+    </div>
+    <div class="topbar-right">
+      <button class="btn-mark-all" onclick="tandaiSemuaDibaca()">&#x2713; Tandai semua dibaca</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Filter tab -->
+    <div class="filter-bar">
+      <button class="filter-btn active" id="btnSemua" onclick="setFilter('semua')">
+        Semua <span class="filter-count" id="countSemua">0</span>
+      </button>
+      <button class="filter-btn" id="btnBelum" onclick="setFilter('belum')">
+        Belum Dibaca <span class="filter-count" id="countBelum">0</span>
+      </button>
+      <button class="filter-btn" id="btnSudah" onclick="setFilter('sudah')">
+        Sudah Dibaca <span class="filter-count" id="countSudah">0</span>
+      </button>
+    </div>
+
+    <!-- Konten notifikasi -->
+    <div class="notif-list" id="notifList">
+      <!-- Skeleton saat loading -->
+      <div id="skeletonArea">
+        <div class="skel-card">
+          <div class="skel-icon skeleton"></div>
+          <div class="skel-body">
+            <div class="skel-line w-60 skeleton"></div>
+            <div class="skel-line w-40 skeleton"></div>
+            <div class="skel-line w-full skeleton"></div>
+            <div class="skel-line w-80 skeleton"></div>
+          </div>
+        </div>
+        <div class="skel-card">
+          <div class="skel-icon skeleton"></div>
+          <div class="skel-body">
+            <div class="skel-line w-60 skeleton"></div>
+            <div class="skel-line w-40 skeleton"></div>
+            <div class="skel-line w-full skeleton"></div>
+            <div class="skel-line w-80 skeleton"></div>
+          </div>
+        </div>
+        <div class="skel-card">
+          <div class="skel-icon skeleton"></div>
+          <div class="skel-body">
+            <div class="skel-line w-60 skeleton"></div>
+            <div class="skel-line w-40 skeleton"></div>
+            <div class="skel-line w-full skeleton"></div>
+            <div class="skel-line w-80 skeleton"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script>
+// ===== AUTH =====
+if (!localStorage.getItem('token')) { window.location.href = 'login.html'; }
+
+var namaUser = localStorage.getItem('namaUser') || 'Pengguna';
+var roleUser  = localStorage.getItem('roleUser') || 'peserta';
+var idUser    = localStorage.getItem('idUser');
+
+// Halaman ini hanya untuk peserta
+if (roleUser === 'penyelenggara') { window.location.href = 'dashboard.html'; }
+
+// Sidebar
+document.getElementById('sidebarName').textContent   = namaUser;
+document.getElementById('sidebarRole').textContent   = roleUser.charAt(0).toUpperCase() + roleUser.slice(1);
+document.getElementById('sidebarAvatar').textContent = namaUser.charAt(0).toUpperCase();
+document.getElementById('navLaporan').classList.add('hidden');
+document.getElementById('navBroadcast').classList.add('hidden');
+
+// ===== STATE =====
+var semuaNotif  = [];
+var filterAktif = 'semua';
+// Sinkron read-state dengan dashboard (pakai localStorage yang sama)
+var readIds = new Set(JSON.parse(localStorage.getItem('readNotifIds') || '[]'));
+
+function saveReadIds() {
+  localStorage.setItem('readNotifIds', JSON.stringify([...readIds]));
+}
+
+// ===== LOAD NOTIFIKASI =====
+function loadNotifikasi() {
+  fetch('/api/notifikasi/peserta/' + idUser)
+    .then(function(r) {
+      if (!r.ok) throw new Error('Gagal');
+      return r.json();
+    })
+    .then(function(data) {
+      document.getElementById('skeletonArea').remove();
+      semuaNotif = data || [];
+      updateCounter();
+      renderList();
+    })
+    .catch(function() {
+      document.getElementById('skeletonArea').remove();
+      document.getElementById('notifList').innerHTML =
+        '<div class="empty-state">' +
+          '<span class="empty-icon">&#x26A0;&#xFE0F;</span>' +
+          '<h3>Gagal memuat notifikasi</h3>' +
+          '<p>Periksa koneksi internet kamu dan coba lagi</p>' +
+        '</div>';
+    });
+}
+
+// ===== UPDATE COUNTER =====
+function updateCounter() {
+  var total = semuaNotif.length;
+  var belum = semuaNotif.filter(function(n) { return !readIds.has(String(n.id)); }).length;
+  var sudah = total - belum;
+
+  document.getElementById('countSemua').textContent = total;
+  document.getElementById('countBelum').textContent = belum;
+  document.getElementById('countSudah').textContent = sudah;
+
+  if (total === 0) {
+    document.getElementById('subTitle').textContent = 'Semua notifikasi dari event yang kamu ikuti';
+  } else if (belum > 0) {
+    document.getElementById('subTitle').textContent = belum + ' belum dibaca dari ' + total + ' notifikasi';
+  } else {
+    document.getElementById('subTitle').textContent = 'Semua ' + total + ' notifikasi sudah dibaca';
+  }
+}
+
+// ===== RENDER LIST =====
+function renderList() {
+  var list = document.getElementById('notifList');
+
+  var data = semuaNotif.slice(); // copy
+  if (filterAktif === 'belum') {
+    data = semuaNotif.filter(function(n) { return !readIds.has(String(n.id)); });
+  } else if (filterAktif === 'sudah') {
+    data = semuaNotif.filter(function(n) { return readIds.has(String(n.id)); });
+  }
+
+  if (data.length === 0) {
+    var info = {
+      semua: { icon: '&#x1F514;', judul: 'Belum ada notifikasi', sub: 'Notifikasi broadcast dari penyelenggara akan muncul di sini' },
+      belum: { icon: '&#x2705;',  judul: 'Semua sudah dibaca!',  sub: 'Tidak ada notifikasi yang belum dibaca' },
+      sudah: { icon: '&#x1F4EC;', judul: 'Belum ada yang dibaca', sub: 'Klik notifikasi untuk menandainya sudah dibaca' }
+    };
+    var p = info[filterAktif];
+    list.innerHTML =
+      '<div class="empty-state">' +
+        '<span class="empty-icon">' + p.icon + '</span>' +
+        '<h3>' + p.judul + '</h3>' +
+        '<p>' + p.sub + '</p>' +
+      '</div>';
+    return;
+  }
+
+  list.innerHTML = data.map(function(n) {
+    var isRead = readIds.has(String(n.id));
+    var waktu  = formatWaktu(n.dibuatAt);
+    return (
+      '<div class="notif-card' + (isRead ? '' : ' unread') + '" onclick="tandaiDibaca(' + n.id + ')" id="notifCard-' + n.id + '">' +
+        '<div class="notif-icon">&#x1F4E3;</div>' +
+        '<div class="notif-body">' +
+          '<div class="notif-header-row">' +
+            '<div class="notif-judul">' + esc(n.judul) + '</div>' +
+            '<div class="notif-time">' + waktu + '</div>' +
+          '</div>' +
+          '<span class="notif-event-tag">&#x1F4C5; ' + esc(n.namaEvent || '-') + '</span>' +
+          '<div class="notif-pesan">' + esc(n.pesan) + '</div>' +
+        '</div>' +
+        (isRead ? '' : '<div class="unread-dot" id="dot-' + n.id + '"></div>') +
+      '</div>'
+    );
+  }).join('');
+}
+
+// ===== SET FILTER =====
+function setFilter(f) {
+  filterAktif = f;
+  ['Semua','Belum','Sudah'].forEach(function(id) {
+    document.getElementById('btn' + id).classList.remove('active');
+  });
+  var map = { semua:'Semua', belum:'Belum', sudah:'Sudah' };
+  document.getElementById('btn' + map[f]).classList.add('active');
+  renderList();
+}
+
+// ===== TANDAI DIBACA =====
+function tandaiDibaca(id) {
+  if (readIds.has(String(id))) return;
+  readIds.add(String(id));
+  saveReadIds();
+  updateCounter();
+
+  // Update DOM langsung tanpa re-render
+  var card = document.getElementById('notifCard-' + id);
+  if (card) {
+    card.classList.remove('unread');
+    var dot = document.getElementById('dot-' + id);
+    if (dot) dot.remove();
+  }
+
+  if (filterAktif === 'belum') {
+    // Tunggu sebentar biar user bisa lihat, lalu hapus dari list
+    setTimeout(function() { renderList(); }, 400);
+  }
+}
+
+function tandaiSemuaDibaca() {
+  if (semuaNotif.length === 0) {
+    showToast('Tidak ada notifikasi', 'error');
+    return;
+  }
+  var belum = semuaNotif.filter(function(n) { return !readIds.has(String(n.id)); }).length;
+  if (belum === 0) {
+    showToast('Semua notifikasi sudah dibaca', 'error');
+    return;
+  }
+  semuaNotif.forEach(function(n) { readIds.add(String(n.id)); });
+  saveReadIds();
+  updateCounter();
+  renderList();
+  showToast('&#x2705; Semua ' + semuaNotif.length + ' notifikasi ditandai dibaca', 'success');
+}
+
+// ===== FORMAT WAKTU =====
+function formatWaktu(raw) {
+  if (!raw) return '';
+  try {
+    var d   = new Date(raw);
+    var now = new Date();
+    var ms  = now - d;
+    var mnt = Math.floor(ms / 60000);
+    var jam = Math.floor(mnt / 60);
+    var hari= Math.floor(jam / 24);
+    if (mnt < 1)  return 'Baru saja';
+    if (mnt < 60) return mnt + ' menit lalu';
+    if (jam < 24) return jam + ' jam lalu';
+    if (hari < 7) return hari + ' hari lalu';
+    return d.toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+  } catch(e) { return ''; }
+}
+
+// ===== HELPER =====
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+function logout() {
+  if (confirm('Keluar dari EventHub?')) {
+    localStorage.clear();
+    window.location.href = 'login.html';
+  }
+}
+
+function showToast(msg, type) {
+  type = type || 'info';
+  var wrap = document.getElementById('toast-wrap');
+  var t    = document.createElement('div');
+  t.className  = 'toast ' + type;
+  t.innerHTML  = msg;
+  wrap.appendChild(t);
+  setTimeout(function() {
+    t.style.opacity    = '0';
+    t.style.transition = 'opacity 0.3s';
+    setTimeout(function() { t.remove(); }, 300);
+  }, 3000);
+}
+
+// ===== INIT =====
+loadNotifikasi();
+</script>
+</body>
+</html>

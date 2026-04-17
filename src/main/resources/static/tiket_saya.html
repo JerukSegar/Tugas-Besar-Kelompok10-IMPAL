@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tiket Saya — EventHub</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--primary:#1a56db;--primary-dark:#1341b3;--primary-light:#ebf1fd;--sidebar-bg:#0f2044;--sidebar-hover:rgba(255,255,255,0.07);--sidebar-active:rgba(255,255,255,0.14);--white:#ffffff;--gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;--gray-300:#cbd5e1;--gray-400:#94a3b8;--gray-500:#64748b;--gray-600:#475569;--gray-700:#334155;--gray-800:#1e293b;--success:#10b981;--success-light:#d1fae5;--warning:#f59e0b;--danger:#ef4444;--danger-light:#fee2e2;--font:'Plus Jakarta Sans',sans-serif;--shadow-sm:0 1px 3px rgba(0,0,0,0.07);--shadow-md:0 4px 16px rgba(0,0,0,0.1);--radius-sm:6px;--radius:10px;--radius-lg:14px;--sidebar-w:220px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--gray-50);color:var(--gray-800);display:flex;min-height:100vh;font-size:14px;}
+button{cursor:pointer;font-family:var(--font);border:none;outline:none;}
+.sidebar{width:var(--sidebar-w);min-height:100vh;background:var(--sidebar-bg);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;}
+.sidebar-brand{display:flex;align-items:center;gap:10px;padding:22px 18px 18px;border-bottom:1px solid rgba(255,255,255,0.07);}
+.brand-icon{width:36px;height:36px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(26,86,219,0.4);}
+.brand-icon svg{width:20px;height:20px;fill:white;}
+.brand-name{font-size:17px;font-weight:700;color:white;}
+.sidebar-nav{flex:1;padding:14px 10px;display:flex;flex-direction:column;gap:2px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);color:rgba(255,255,255,0.6);font-size:13.5px;font-weight:500;cursor:pointer;transition:all 0.18s;text-decoration:none;}
+.nav-item:hover{background:var(--sidebar-hover);color:rgba(255,255,255,0.9);}
+.nav-item.active{background:var(--sidebar-active);color:white;font-weight:600;}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:0.8;}
+.nav-item.active svg{opacity:1;}
+.sidebar-footer{padding:14px 10px;border-top:1px solid rgba(255,255,255,0.07);}
+.user-info{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;}
+.user-info:hover{background:var(--sidebar-hover);border-radius:var(--radius-sm);}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:white;flex-shrink:0;}
+.user-name{font-size:13px;font-weight:600;color:white;}
+.user-role{font-size:11px;color:rgba(255,255,255,0.4);}
+.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;background:var(--white);border-bottom:1px solid var(--gray-200);position:sticky;top:0;z-index:50;}
+.topbar h1{font-size:18px;font-weight:700;}
+.topbar p{font-size:13px;color:var(--gray-500);margin-top:1px;}
+.icon-btn{width:36px;height:36px;border-radius:var(--radius-sm);background:var(--gray-100);display:flex;align-items:center;justify-content:center;border:1px solid var(--gray-200);color:var(--gray-500);}
+.icon-btn svg{width:16px;height:16px;}
+.content{padding:24px 28px;}
+.tabs{display:flex;gap:0;margin-bottom:22px;border-bottom:2px solid var(--gray-200);}
+.tab{padding:10px 20px;font-size:13px;font-weight:600;color:var(--gray-400);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.18s;}
+.tab:hover{color:var(--gray-600);}
+.tab.active{color:var(--primary);border-bottom-color:var(--primary);}
+.tiket-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;}
+@media(max-width:700px){.tiket-grid{grid-template-columns:1fr;}}
+.tiket-card{background:var(--white);border-radius:var(--radius-lg);border:1px solid var(--gray-200);box-shadow:var(--shadow-sm);overflow:hidden;display:flex;flex-direction:column;transition:box-shadow 0.2s;}
+.tiket-card:hover{box-shadow:var(--shadow-md);}
+.tiket-header{padding:16px 18px 14px;display:flex;align-items:flex-start;gap:12px;border-bottom:1px dashed var(--gray-200);}
+.tiket-color-bar{width:4px;border-radius:2px;align-self:stretch;flex-shrink:0;}
+.tiket-info{flex:1;}
+.tiket-tag{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;padding:2px 8px;border-radius:20px;margin-bottom:6px;}
+.tag-seminar{background:#dbeafe;color:#1d4ed8;}
+.tag-workshop{background:#d1fae5;color:#065f46;}
+.tag-konferensi{background:#ede9fe;color:#5b21b6;}
+.tag-webinar{background:#fef3c7;color:#92400e;}
+.tag-bootcamp{background:#fee2e2;color:#991b1b;}
+.tiket-event-name{font-size:15px;font-weight:700;color:var(--gray-800);margin-bottom:4px;line-height:1.3;}
+.tiket-meta{display:flex;flex-direction:column;gap:3px;}
+.tiket-meta span{font-size:12px;color:var(--gray-500);}
+.tiket-status{flex-shrink:0;}
+.status-badge{font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;}
+.status-aktif{background:var(--success-light);color:#065f46;}
+.status-selesai{background:var(--gray-100);color:var(--gray-500);}
+.tiket-footer{padding:12px 18px;display:flex;align-items:center;justify-content:space-between;background:var(--gray-50);}
+.tiket-code-wrap{display:flex;flex-direction:column;gap:2px;}
+.tiket-code-label{font-size:10px;color:var(--gray-400);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;}
+.tiket-code{font-family:monospace;font-size:13px;font-weight:700;color:var(--gray-700);letter-spacing:0.05em;}
+.tiket-right{display:flex;align-items:center;gap:10px;}
+.qr-box{width:48px;height:48px;background:var(--gray-200);border-radius:6px;display:flex;align-items:center;justify-content:center;}
+.qr-box svg{width:28px;height:28px;color:var(--gray-500);}
+.seat-info{text-align:right;}
+.seat-label{font-size:10px;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.05em;}
+.seat-val{font-size:14px;font-weight:700;color:var(--gray-700);}
+.btn-download{padding:7px 14px;background:var(--primary-light);color:var(--primary-dark);border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all 0.15s;}
+.btn-download:hover{background:var(--primary);color:white;}
+.btn-download svg{width:13px;height:13px;}
+.empty-state{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--gray-400);}
+.empty-state svg{width:48px;height:48px;margin-bottom:14px;opacity:0.3;}
+.empty-state h3{font-size:16px;font-weight:600;color:var(--gray-600);margin-bottom:6px;}
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+.toast{display:flex;align-items:center;gap:10px;padding:12px 18px;background:var(--gray-800);color:white;border-radius:var(--radius);font-size:13px;font-weight:500;box-shadow:var(--shadow-md);animation:slideIn 0.3s ease;max-width:320px;}
+.toast.success{background:#065f46;}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:none;}}
+.hidden{display:none!important;}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5C3.9 4 3 4.9 3 6v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM5 7V6h14v1H5zm2 4h10v2H7v-2zm0 4h7v2H7v-2z"/></svg></div>
+    <span class="brand-name">EventHub</span>
+  </div>
+    <nav class="sidebar-nav">
+    <a class="nav-item" href="dashboard.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>Dashboard</a>
+    <a class="nav-item" href="semua_event.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>Semua Event</a>
+    <a class="nav-item" href="event_saya.html" id="navEventSaya"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg><span id="labelEventSaya">Event Saya</span></a>
+    <a class="nav-item" href="tiket_saya.html" id="navTiket"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 10V6c0-1.11-.9-2-2-2H4c-1.1 0-1.99.89-1.99 2v4c1.1 0 1.99.9 1.99 2s-.89 2-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2s.9-2 2-2z"/></svg>Tiket Saya</a>
+    <a class="nav-item" href="checkin_saya.html" id="navCheckin"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>Check-In</a>
+    <a class="nav-item" href="sertifikat_saya.html" id="navSertifikat"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 008 20c3 0 7-3.5 6-8 0 0 2 4 0 8 1.28.56 2.82 1 5 1 .5-3.5-1-7.9-2-10z"/></svg>Sertifikat</a>
+    <a class="nav-item hidden" href="laporan.html" id="navLaporan"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>Laporan</a>
+    <a class="nav-item" href="pengaturan.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>Pengaturan</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-info" ondblclick="logout()">
+      <div class="user-avatar" id="sidebarAvatar">A</div>
+      <div><div class="user-name" id="sidebarName">Pengguna</div><div class="user-role" id="sidebarRole">Peserta</div></div>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div><h1>Tiket Saya</h1><p>Tiket aktif dan riwayat kehadiran</p></div>
+    <div class="icon-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg></div>
+  </div>
+  <div class="content">
+    <div class="tabs">
+      <div class="tab active" onclick="setTab('all',this)">Semua Tiket</div>
+      <div class="tab" onclick="setTab('upcoming',this)">Aktif</div>
+      <div class="tab" onclick="setTab('done',this)">Selesai</div>
+    </div>
+    <div class="tiket-grid" id="tiket-grid"><div class="empty-state"><h3>Memuat tiket...</h3></div></div>
+  </div>
+</main>
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script>
+if (!localStorage.getItem('token')) { window.location.href = 'login.html'; }
+
+function initSidebar() {
+  var role = localStorage.getItem('roleUser') || 'peserta';
+  var nama = localStorage.getItem('namaUser') || 'Pengguna';
+  var el;
+  el = document.getElementById('sidebarName');   if(el) el.textContent = nama;
+  el = document.getElementById('sidebarRole');   if(el) el.textContent = role.charAt(0).toUpperCase() + role.slice(1);
+  el = document.getElementById('sidebarAvatar'); if(el) el.textContent = nama.charAt(0).toUpperCase();
+  var navTiket      = document.getElementById('navTiket');
+  var navCheckin    = document.getElementById('navCheckin');
+  var navSertifikat = document.getElementById('navSertifikat');
+  var navLaporan    = document.getElementById('navLaporan');
+  var labelEvent    = document.getElementById('labelEventSaya');
+  if (role === 'penyelenggara') {
+    if(navTiket)      navTiket.classList.add('hidden');
+    if(navCheckin)    navCheckin.classList.add('hidden');
+    if(navSertifikat) navSertifikat.classList.add('hidden');
+    if(navLaporan)    navLaporan.classList.remove('hidden');
+    if(labelEvent)    labelEvent.textContent = 'Event Dikelola';
+  } else {
+    if(navTiket)      navTiket.classList.remove('hidden');
+    if(navCheckin)    navCheckin.classList.remove('hidden');
+    if(navSertifikat) navSertifikat.classList.remove('hidden');
+    if(navLaporan)    navLaporan.classList.add('hidden');
+    if(labelEvent)    labelEvent.textContent = 'Event Saya';
+  }
+}
+
+
+const namaUser = localStorage.getItem('namaUser') || 'Pengguna';
+const roleUser = localStorage.getItem('roleUser') || 'peserta';
+const idUser = localStorage.getItem('idUser');
+
+document.getElementById('sidebarName').textContent = namaUser;
+document.getElementById('sidebarRole').textContent = roleUser.charAt(0).toUpperCase() + roleUser.slice(1);
+document.getElementById('sidebarAvatar').textContent = namaUser.charAt(0).toUpperCase();
+initSidebar();
+
+if (roleUser === 'penyelenggara') { window.location.href = 'event_saya.html'; }
+
+let tickets = [];
+let activeTab = 'all';
+
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+function tagStyle(k) { return {seminar:'background:#dbeafe;color:#1d4ed8;',workshop:'background:#d1fae5;color:#065f46;',konferensi:'background:#ede9fe;color:#5b21b6;',webinar:'background:#fef3c7;color:#92400e;',bootcamp:'background:#fee2e2;color:#991b1b;'}[k] || ''; }
+function barColor(k) { return {seminar:'#3b82f6',workshop:'#10b981',konferensi:'#8b5cf6',webinar:'#f59e0b',bootcamp:'#ef4444'}[k] || '#94a3b8'; }
+
+function loadTickets() {
+  fetch('/api/events/saya/' + idUser)
+    .then(r => r.json())
+    .then(data => {
+      tickets = data;
+      render();
+    })
+    .catch(() => {
+      document.getElementById('tiket-grid').innerHTML = '<div class="empty-state"><h3>Gagal memuat tiket</h3><p>Pastikan server sudah berjalan</p></div>';
+    });
+}
+
+function setTab(tab, el) {
+  activeTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+
+function render() {
+  const grid = document.getElementById('tiket-grid');
+  let data = tickets;
+  if (activeTab !== 'all') data = data.filter(t => t.status === activeTab);
+  if (!data.length) {
+    grid.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 10V6c0-1.11-.9-2-2-2H4c-1.1 0-1.99.89-1.99 2v4c1.1 0 1.99.9 1.99 2s-.89 2-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2s.9-2 2-2z"/></svg><h3>Tidak ada tiket</h3><p>Belum ada tiket di kategori ini</p></div>`;
+    return;
+  }
+  grid.innerHTML = data.map(t => `
+    <div class="tiket-card">
+      <div class="tiket-header">
+        <div class="tiket-color-bar" style="background:${barColor(t.kategori)};"></div>
+        <div class="tiket-info">
+          <span class="tiket-tag" style="${tagStyle(t.kategori)}">${cap(t.kategori || 'lainnya')}</span>
+          <div class="tiket-event-name">${t.nama || '-'}</div>
+          <div class="tiket-meta">
+            <span>📅 ${t.tanggal || '-'} · ${t.waktu || ''}</span>
+            <span>📍 ${t.venue || ''}, ${t.lokasi || '-'}</span>
+          </div>
+        </div>
+        <div class="tiket-status">
+          <span class="status-badge ${t.status === 'upcoming' ? 'status-aktif' : 'status-selesai'}">${t.status === 'upcoming' ? 'Aktif' : 'Selesai'}</span>
+        </div>
+      </div>
+      <div class="tiket-footer">
+        <div class="tiket-code-wrap">
+          <div class="tiket-code-label">Kode Tiket</div>
+          <div class="tiket-code">${t.kodeTiket}</div>
+        </div>
+        <div class="tiket-right">
+          <div class="seat-info">
+            <div class="seat-label">Penyelenggara</div>
+            <div class="seat-val" style="font-size:12px;">${t.penyelenggara || '-'}</div>
+          </div>
+          <div class="qr-box">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 11h2v2H3v-2zm8-6h2v4h-2V5zm-2 6h4v4h-2v-2H9v-2zm6 0h2v2h-2v-2zm2 4h-2v2h2v2h2v-4h-2zm-2 2h-2v2h2v-2zM3 3h8v8H3V3zm10 0h8v8h-8V3zm-10 10h8v8H3v-8zm2 2v4h4v-4H5zm10-12v4h4V3h-4z"/></svg>
+          </div>
+          ${t.status === 'upcoming' ? `<button class="btn-download" onclick="showToast('✅ Tiket ${t.kodeTiket} diunduh!','success')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Unduh</button>` : ''}
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function showToast(msg, type = 'info') {
+  const wrap = document.getElementById('toast-wrap');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  wrap.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 3000);
+}
+
+function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+
+loadTickets();
+</script>
+</body>
+</html>

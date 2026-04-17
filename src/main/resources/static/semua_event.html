@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Semua Event — EventHub</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--primary:#1a56db;--primary-dark:#1341b3;--primary-light:#ebf1fd;--sidebar-bg:#0f2044;--sidebar-hover:rgba(255,255,255,0.07);--sidebar-active:rgba(255,255,255,0.14);--white:#ffffff;--gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;--gray-300:#cbd5e1;--gray-400:#94a3b8;--gray-500:#64748b;--gray-600:#475569;--gray-700:#334155;--gray-800:#1e293b;--success:#10b981;--success-light:#d1fae5;--warning:#f59e0b;--warning-light:#fef3c7;--danger:#ef4444;--danger-light:#fee2e2;--font:'Plus Jakarta Sans',sans-serif;--shadow-sm:0 1px 3px rgba(0,0,0,0.07);--shadow:0 2px 8px rgba(0,0,0,0.08);--shadow-md:0 4px 16px rgba(0,0,0,0.1);--radius-sm:6px;--radius:10px;--radius-lg:14px;--sidebar-w:220px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--gray-50);color:var(--gray-800);display:flex;min-height:100vh;font-size:14px;}
+button{cursor:pointer;font-family:var(--font);border:none;outline:none;}
+input,select{font-family:var(--font);outline:none;}
+.sidebar{width:var(--sidebar-w);min-height:100vh;background:var(--sidebar-bg);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;}
+.sidebar-brand{display:flex;align-items:center;gap:10px;padding:22px 18px 18px;border-bottom:1px solid rgba(255,255,255,0.07);}
+.brand-icon{width:36px;height:36px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(26,86,219,0.4);}
+.brand-icon svg{width:20px;height:20px;fill:white;}
+.brand-name{font-size:17px;font-weight:700;color:white;}
+.sidebar-nav{flex:1;padding:14px 10px;display:flex;flex-direction:column;gap:2px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);color:rgba(255,255,255,0.6);font-size:13.5px;font-weight:500;cursor:pointer;transition:all 0.18s;text-decoration:none;}
+.nav-item:hover{background:var(--sidebar-hover);color:rgba(255,255,255,0.9);}
+.nav-item.active{background:var(--sidebar-active);color:white;font-weight:600;}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:0.8;}
+.nav-item.active svg{opacity:1;}
+.sidebar-footer{padding:14px 10px;border-top:1px solid rgba(255,255,255,0.07);}
+.user-info{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;}
+.user-info:hover{background:var(--sidebar-hover);border-radius:var(--radius-sm);}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:white;flex-shrink:0;}
+.user-name{font-size:13px;font-weight:600;color:white;}
+.user-role{font-size:11px;color:rgba(255,255,255,0.4);}
+.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;background:var(--white);border-bottom:1px solid var(--gray-200);position:sticky;top:0;z-index:50;}
+.topbar-left h1{font-size:18px;font-weight:700;}
+.topbar-left p{font-size:13px;color:var(--gray-500);margin-top:1px;}
+.icon-btn{width:36px;height:36px;border-radius:var(--radius-sm);background:var(--gray-100);display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid var(--gray-200);color:var(--gray-500);}
+.icon-btn svg{width:16px;height:16px;}
+.content{padding:24px 28px;flex:1;}
+.filter-bar{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
+.search-wrap{position:relative;flex:1;min-width:200px;}
+.search-wrap input{width:100%;padding:9px 12px 9px 36px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-size:13px;color:var(--gray-700);background:var(--white);transition:border-color 0.2s;}
+.search-wrap input:focus{border-color:var(--primary);}
+.search-wrap svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--gray-400);}
+select.form-select{padding:9px 14px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-size:13px;color:var(--gray-600);background:var(--white);cursor:pointer;}
+select.form-select:focus{border-color:var(--primary);}
+.filter-chips{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.chip{padding:7px 16px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--gray-200);background:var(--white);color:var(--gray-500);transition:all 0.15s;}
+.chip:hover{border-color:var(--primary);color:var(--primary);}
+.chip.active{border-color:var(--primary);background:var(--primary);color:white;}
+.results-info{font-size:13px;color:var(--gray-500);margin-bottom:16px;}
+.results-info span{font-weight:700;color:var(--gray-800);}
+.events-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+@media(max-width:900px){.events-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:600px){.events-grid{grid-template-columns:1fr;}}
+.event-card{background:var(--white);border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--gray-200);box-shadow:var(--shadow-sm);transition:transform 0.2s,box-shadow 0.2s;cursor:pointer;}
+.event-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
+.event-thumb{height:100px;display:flex;align-items:center;justify-content:center;position:relative;}
+.event-thumb svg{width:36px;height:36px;opacity:0.25;}
+.event-body{padding:14px;}
+.event-tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;padding:3px 9px;border-radius:20px;margin-bottom:8px;}
+.tag-seminar{background:#dbeafe;color:#1d4ed8;}
+.tag-workshop{background:#d1fae5;color:#065f46;}
+.tag-konferensi{background:#ede9fe;color:#5b21b6;}
+.tag-webinar{background:#fef3c7;color:#92400e;}
+.tag-bootcamp{background:#fee2e2;color:#991b1b;}
+.event-name{font-size:15px;font-weight:700;color:var(--gray-800);margin-bottom:5px;line-height:1.3;}
+.event-meta{font-size:12px;color:var(--gray-500);margin-bottom:10px;display:flex;flex-direction:column;gap:3px;}
+.capacity-wrap{margin-bottom:10px;}
+.capacity-label{display:flex;justify-content:space-between;font-size:11px;color:var(--gray-400);margin-bottom:4px;}
+.capacity-bar{height:4px;background:var(--gray-200);border-radius:2px;overflow:hidden;}
+.capacity-fill{height:100%;border-radius:2px;}
+.fill-ok{background:var(--primary);}
+.fill-warn{background:var(--warning);}
+.fill-full{background:var(--danger);}
+.event-footer{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid var(--gray-100);}
+.event-price{font-size:13px;font-weight:600;}
+.price-free{color:var(--success);}
+.price-paid{color:var(--primary);}
+.price-full{color:var(--danger);}
+.btn-daftar{padding:7px 18px;background:var(--primary);color:white;border-radius:var(--radius-sm);font-size:12px;font-weight:600;transition:background 0.15s;}
+.btn-daftar:hover{background:var(--primary-dark);}
+.btn-daftar:disabled{background:var(--gray-300);cursor:not-allowed;}
+.empty-state{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--gray-400);}
+.empty-state svg{width:48px;height:48px;margin-bottom:14px;opacity:0.3;}
+.empty-state h3{font-size:16px;font-weight:600;color:var(--gray-600);margin-bottom:6px;}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.open{display:flex;animation:fadeIn 0.2s ease;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:var(--white);border-radius:var(--radius-lg);width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 50px rgba(0,0,0,0.15);}
+.modal-header{padding:20px 22px 0;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+.modal-title{font-size:18px;font-weight:700;color:var(--gray-800);}
+.modal-close{width:28px;height:28px;border-radius:6px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:16px;color:var(--gray-500);border:none;}
+.modal-close:hover{background:var(--gray-200);}
+.modal-body{padding:18px 22px 22px;}
+.detail-thumb{height:120px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
+.detail-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;}
+.detail-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+.detail-label{font-size:11px;font-weight:600;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px;}
+.detail-val{font-size:13px;font-weight:600;color:var(--gray-700);}
+.modal-footer{padding:16px 22px;border-top:1px solid var(--gray-200);display:flex;gap:10px;}
+.btn-modal-daftar{flex:1;padding:11px;background:var(--primary);color:white;border-radius:var(--radius-sm);font-size:14px;font-weight:600;}
+.btn-modal-daftar:hover{background:var(--primary-dark);}
+.btn-modal-daftar:disabled{background:var(--gray-300);cursor:not-allowed;}
+.btn-modal-batal{padding:11px 20px;background:var(--gray-100);color:var(--gray-600);border-radius:var(--radius-sm);font-size:14px;font-weight:600;}
+.btn-modal-batal:hover{background:var(--gray-200);}
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+.toast{display:flex;align-items:center;gap:10px;padding:12px 18px;background:var(--gray-800);color:white;border-radius:var(--radius);font-size:13px;font-weight:500;box-shadow:var(--shadow-md);animation:slideIn 0.3s ease;max-width:320px;}
+.toast.success{background:#065f46;}
+.toast.error{background:#991b1b;}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:none;}}
+.hidden{display:none!important;}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5C3.9 4 3 4.9 3 6v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM5 7V6h14v1H5zm2 4h10v2H7v-2zm0 4h7v2H7v-2z"/></svg></div>
+    <span class="brand-name">EventHub</span>
+  </div>
+    <nav class="sidebar-nav">
+    <a class="nav-item" href="dashboard.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>Dashboard</a>
+    <a class="nav-item active" href="semua_event.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>Semua Event</a>
+    <a class="nav-item" href="event_saya.html" id="navEventSaya"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg><span id="labelEventSaya">Event Saya</span></a>
+    <a class="nav-item" href="tiket_saya.html" id="navTiket"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 10V6c0-1.11-.9-2-2-2H4c-1.1 0-1.99.89-1.99 2v4c1.1 0 1.99.9 1.99 2s-.89 2-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2s.9-2 2-2z"/></svg>Tiket Saya</a>
+    <a class="nav-item" href="checkin_saya.html" id="navCheckin"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>Check-In</a>
+    <a class="nav-item" href="sertifikat_saya.html" id="navSertifikat"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 008 20c3 0 7-3.5 6-8 0 0 2 4 0 8 1.28.56 2.82 1 5 1 .5-3.5-1-7.9-2-10z"/></svg>Sertifikat</a>
+    <a class="nav-item hidden" href="laporan.html" id="navLaporan"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>Laporan</a>
+    <!-- ✅ MENU BROADCAST - hanya muncul untuk penyelenggara -->
+    <a class="nav-item hidden" href="broadcast.html" id="navBroadcast"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 11v2h4v-2h-4zm-2 6.61c.96.71 2.21 1.65 3.2 2.39.4-.53.8-1.07 1.2-1.6-.99-.74-2.24-1.68-3.2-2.4-.4.54-.8 1.08-1.2 1.61zM20.4 5.6c-.4-.53-.8-1.07-1.2-1.6-.99.74-2.24 1.68-3.2 2.4.4.53.8 1.07 1.2 1.6.96-.72 2.21-1.65 3.2-2.4zM4 9c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h1v4h2v-4h1l5 3V6L8 9H4zm11.5 3c0-1.33-.58-2.53-1.5-3.35v6.69c.92-.81 1.5-2.01 1.5-3.34z"/></svg>Broadcast</a>
+    <a class="nav-item" href="pengaturan.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>Pengaturan</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-info" ondblclick="logout()">
+      <div class="user-avatar" id="sidebarAvatar">A</div>
+      <div><div class="user-name" id="sidebarName">Pengguna</div><div class="user-role" id="sidebarRole">Peserta</div></div>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-left"><h1>Semua Event</h1><p>Temukan dan daftar event yang kamu minati</p></div>
+    <div class="icon-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg></div>
+  </div>
+  <div class="content">
+    <div class="filter-bar">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="search-input" placeholder="Cari event..." oninput="applyFilter()"/>
+      </div>
+      <select class="form-select" id="loc-select" onchange="applyFilter()">
+        <option value="">Semua Lokasi</option>
+        <option value="Jakarta">Jakarta</option>
+        <option value="Bandung">Bandung</option>
+        <option value="Surabaya">Surabaya</option>
+        <option value="Online">Online</option>
+      </select>
+      <select class="form-select" id="sort-select" onchange="applyFilter()">
+        <option value="">Urutkan</option>
+        <option value="name">Nama A-Z</option>
+        <option value="capacity">Kapasitas Terbesar</option>
+      </select>
+    </div>
+    <div class="filter-chips" id="chips">
+      <div class="chip active" onclick="setCategory('',this)">Semua</div>
+      <div class="chip" onclick="setCategory('seminar',this)">Seminar</div>
+      <div class="chip" onclick="setCategory('workshop',this)">Workshop</div>
+      <div class="chip" onclick="setCategory('konferensi',this)">Konferensi</div>
+      <div class="chip" onclick="setCategory('webinar',this)">Webinar</div>
+      <div class="chip" onclick="setCategory('bootcamp',this)">Bootcamp</div>
+    </div>
+    <div class="results-info" id="results-info">Memuat event...</div>
+    <div class="events-grid" id="events-grid"></div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title"></div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn-modal-batal" onclick="closeModal()">Tutup</button>
+      <button class="btn-modal-daftar" id="modal-daftar-btn">Daftar Sekarang</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script>
+if (!localStorage.getItem('token')) { window.location.href = 'login.html'; }
+
+function initSidebar() {
+  var role = localStorage.getItem('roleUser') || 'peserta';
+  var nama = localStorage.getItem('namaUser') || 'Pengguna';
+  var el;
+  el = document.getElementById('sidebarName');   if(el) el.textContent = nama;
+  el = document.getElementById('sidebarRole');   if(el) el.textContent = role.charAt(0).toUpperCase() + role.slice(1);
+  el = document.getElementById('sidebarAvatar'); if(el) el.textContent = nama.charAt(0).toUpperCase();
+  var navTiket      = document.getElementById('navTiket');
+  var navCheckin    = document.getElementById('navCheckin');
+  var navSertifikat = document.getElementById('navSertifikat');
+  var navLaporan    = document.getElementById('navLaporan');
+  var navBroadcast  = document.getElementById('navBroadcast'); // ✅ BARU
+  var labelEvent    = document.getElementById('labelEventSaya');
+  if (role === 'penyelenggara') {
+    if(navTiket)      navTiket.classList.add('hidden');
+    if(navCheckin)    navCheckin.classList.add('hidden');
+    if(navSertifikat) navSertifikat.classList.add('hidden');
+    if(navLaporan)    navLaporan.classList.remove('hidden');
+    if(navBroadcast)  navBroadcast.classList.remove('hidden');
+    if(labelEvent)    labelEvent.textContent = 'Event Dikelola';
+  } else {
+    if(navTiket)      navTiket.classList.remove('hidden');
+    if(navCheckin)    navCheckin.classList.remove('hidden');
+    if(navSertifikat) navSertifikat.classList.remove('hidden');
+    if(navLaporan)    navLaporan.classList.add('hidden');
+    if(navBroadcast)  navBroadcast.classList.add('hidden');
+    if(labelEvent)    labelEvent.textContent = 'Event Saya';
+  }
+}
+
+const namaUser = localStorage.getItem('namaUser') || 'Pengguna';
+const roleUser = localStorage.getItem('roleUser') || 'peserta';
+const idUser = localStorage.getItem('idUser');
+
+document.getElementById('sidebarName').textContent = namaUser;
+document.getElementById('sidebarRole').textContent = roleUser.charAt(0).toUpperCase() + roleUser.slice(1);
+document.getElementById('sidebarAvatar').textContent = namaUser.charAt(0).toUpperCase();
+initSidebar();
+
+if (roleUser === 'penyelenggara') {
+  document.getElementById('navTiket').classList.add('hidden');
+  document.getElementById('labelEventSaya').textContent = 'Event Dikelola';
+}
+
+let allEvents = [];
+let activeCat = '';
+
+function thumbColor(k) { return {seminar:'#dbeafe',workshop:'#d1fae5',konferensi:'#ede9fe',webinar:'#fef3c7',bootcamp:'#fee2e2'}[k] || '#f1f5f9'; }
+function thumbIcon(k) { return {seminar:'#3b82f6',workshop:'#10b981',konferensi:'#8b5cf6',webinar:'#f59e0b',bootcamp:'#ef4444'}[k] || '#94a3b8'; }
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+function loadEvents() {
+  fetch('/api/events')
+    .then(r => r.json())
+    .then(data => { allEvents = data; applyFilter(); })
+    .catch(() => {
+      document.getElementById('results-info').textContent = 'Gagal memuat event.';
+      document.getElementById('events-grid').innerHTML = '<div class="empty-state"><h3>Gagal terhubung ke server</h3><p>Pastikan server sudah berjalan</p></div>';
+    });
+}
+
+function setCategory(cat, el) {
+  activeCat = cat;
+  document.querySelectorAll('#chips .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  applyFilter();
+}
+
+function applyFilter() {
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const loc = document.getElementById('loc-select').value;
+  const sort = document.getElementById('sort-select').value;
+  let data = allEvents;
+  if (activeCat) data = data.filter(e => e.kategori === activeCat);
+  if (search) data = data.filter(e => e.nama.toLowerCase().includes(search) || (e.deskripsi || '').toLowerCase().includes(search));
+  if (loc) data = data.filter(e => e.lokasi === loc);
+  if (sort === 'name') data = [...data].sort((a, b) => a.nama.localeCompare(b.nama));
+  if (sort === 'capacity') data = [...data].sort((a, b) => b.kapasitas - a.kapasitas);
+  document.getElementById('results-info').innerHTML = `Menampilkan <span>${data.length}</span> event`;
+  const grid = document.getElementById('events-grid');
+  grid.innerHTML = data.length ? data.map(renderCard).join('') : `<div class="empty-state"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg><h3>Tidak ada event ditemukan</h3><p>Coba ubah filter atau kata pencarian</p></div>`;
+}
+
+function renderCard(ev) {
+  const pct = Math.round(ev.terisi / ev.kapasitas * 100);
+  const isFull = ev.terisi >= ev.kapasitas;
+  const fillClass = pct >= 100 ? 'fill-full' : pct >= 80 ? 'fill-warn' : 'fill-ok';
+  const priceHtml = isFull ? `<span class="event-price price-full">Penuh</span>`
+    : ev.tipeHarga === 'free' ? `<span class="event-price price-free">Gratis</span>`
+    : `<span class="event-price price-paid">${ev.harga}</span>`;
+  return `<div class="event-card" onclick="openModal(${ev.id})">
+    <div class="event-thumb" style="background:${thumbColor(ev.kategori)};">
+      <svg viewBox="0 0 24 24" fill="${thumbIcon(ev.kategori)}"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+      <div style="position:absolute;top:10px;left:12px;"><span class="event-tag tag-${ev.kategori}">${cap(ev.kategori)}</span></div>
+      ${isFull ? `<div style="position:absolute;top:10px;right:12px;background:#ef4444;color:white;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;">PENUH</div>` : ''}
+    </div>
+    <div class="event-body">
+      <div class="event-name">${ev.nama}</div>
+      <div class="event-meta"><span>📅 ${ev.tanggal} · ${ev.waktu}</span><span>📍 ${ev.lokasi}</span></div>
+      <div class="capacity-wrap">
+        <div class="capacity-label"><span>Terisi</span><span>${ev.terisi}/${ev.kapasitas}</span></div>
+        <div class="capacity-bar"><div class="capacity-fill ${fillClass}" style="width:${pct}%"></div></div>
+      </div>
+      <div class="event-footer">${priceHtml}<button class="btn-daftar" ${isFull ? 'disabled' : ''} onclick="daftar(${ev.id},event)">${isFull ? 'Penuh' : 'Daftar'}</button></div>
+    </div>
+  </div>`;
+}
+
+function openModal(id) {
+  const ev = allEvents.find(e => e.id === id);
+  if (!ev) return;
+  const isFull = ev.terisi >= ev.kapasitas;
+  document.getElementById('modal-title').textContent = ev.nama;
+  document.getElementById('modal-body').innerHTML = `
+    <div class="detail-thumb" style="background:${thumbColor(ev.kategori)};">
+      <svg viewBox="0 0 24 24" fill="${thumbIcon(ev.kategori)}" style="width:56px;height:56px;opacity:0.3;"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+    </div>
+    <span class="event-tag tag-${ev.kategori}">${cap(ev.kategori)}</span>
+    <p style="font-size:13px;color:var(--gray-600);margin:10px 0 16px;line-height:1.6;">${ev.deskripsi || '-'}</p>
+    <div class="detail-row"><span class="detail-icon">📅</span><div><div class="detail-label">Tanggal & Waktu</div><div class="detail-val">${ev.tanggal} · ${ev.waktu}</div></div></div>
+    <div class="detail-row"><span class="detail-icon">📍</span><div><div class="detail-label">Lokasi</div><div class="detail-val">${ev.venue}, ${ev.lokasi}</div></div></div>
+    <div class="detail-row"><span class="detail-icon">👥</span><div><div class="detail-label">Kapasitas</div><div class="detail-val">${ev.terisi}/${ev.kapasitas} peserta</div></div></div>
+    <div class="detail-row"><span class="detail-icon">🏢</span><div><div class="detail-label">Penyelenggara</div><div class="detail-val">${ev.penyelenggara}</div></div></div>
+    <div class="detail-row"><span class="detail-icon">💰</span><div><div class="detail-label">Harga Tiket</div><div class="detail-val">${ev.harga}</div></div></div>`;
+  const btn = document.getElementById('modal-daftar-btn');
+  btn.disabled = isFull;
+  btn.textContent = isFull ? 'Event Penuh' : 'Daftar Sekarang';
+  btn.onclick = () => { daftar(id, new Event('click')); closeModal(); };
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('modal-overlay') || e.type === 'click') {
+    document.getElementById('modal-overlay').classList.remove('open');
+  }
+}
+
+function daftar(id, e) {
+  if (e) e.stopPropagation();
+  if (!idUser) { showToast('⚠️ Silakan login dulu!', 'error'); return; }
+  if (roleUser === 'penyelenggara') { showToast('⚠️ Penyelenggara tidak bisa mendaftar event!', 'error'); return; }
+  fetch('/api/events/daftar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId: idUser, eventId: id })
+  })
+  .then(r => r.json())
+  .then(data => {
+    showToast((data.success ? '✅ ' : '⚠️ ') + data.message, data.success ? 'success' : 'error');
+    if (data.success) loadEvents();
+  })
+  .catch(() => showToast('❌ Gagal konek ke server!', 'error'));
+}
+
+function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+
+function showToast(msg, type = 'info') {
+  const wrap = document.getElementById('toast-wrap');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  wrap.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 3000);
+}
+
+loadEvents();
+</script>
+</body>
+</html>

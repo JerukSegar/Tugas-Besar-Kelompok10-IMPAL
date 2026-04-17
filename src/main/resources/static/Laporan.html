@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laporan — EventHub</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--primary:#1a56db;--primary-dark:#1341b3;--primary-light:#ebf1fd;--sidebar-bg:#0f2044;--sidebar-hover:rgba(255,255,255,0.07);--sidebar-active:rgba(255,255,255,0.14);--white:#ffffff;--gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;--gray-300:#cbd5e1;--gray-400:#94a3b8;--gray-500:#64748b;--gray-600:#475569;--gray-700:#334155;--gray-800:#1e293b;--success:#10b981;--success-light:#d1fae5;--warning:#f59e0b;--warning-light:#fef3c7;--danger:#ef4444;--danger-light:#fee2e2;--font:'Plus Jakarta Sans',sans-serif;--shadow-sm:0 1px 3px rgba(0,0,0,0.07);--shadow-md:0 4px 16px rgba(0,0,0,0.1);--radius-sm:6px;--radius:10px;--radius-lg:14px;--sidebar-w:220px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--gray-50);color:var(--gray-800);display:flex;min-height:100vh;font-size:14px;}
+button{cursor:pointer;font-family:var(--font);border:none;outline:none;}
+.sidebar{width:var(--sidebar-w);min-height:100vh;background:var(--sidebar-bg);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;}
+.sidebar-brand{display:flex;align-items:center;gap:10px;padding:22px 18px 18px;border-bottom:1px solid rgba(255,255,255,0.07);}
+.brand-icon{width:36px;height:36px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.brand-icon svg{width:20px;height:20px;fill:white;}
+.brand-name{font-size:17px;font-weight:700;color:white;}
+.sidebar-nav{flex:1;padding:14px 10px;display:flex;flex-direction:column;gap:2px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);color:rgba(255,255,255,0.6);font-size:13.5px;font-weight:500;cursor:pointer;transition:all 0.18s;text-decoration:none;}
+.nav-item:hover{background:var(--sidebar-hover);color:rgba(255,255,255,0.9);}
+.nav-item.active{background:var(--sidebar-active);color:white;font-weight:600;}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:0.8;}
+.nav-item.active svg{opacity:1;}
+.sidebar-footer{padding:14px 10px;border-top:1px solid rgba(255,255,255,0.07);}
+.user-info{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;}
+.user-info:hover{background:var(--sidebar-hover);border-radius:var(--radius-sm);}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:white;flex-shrink:0;}
+.user-name{font-size:13px;font-weight:600;color:white;}
+.user-role{font-size:11px;color:rgba(255,255,255,0.4);}
+.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;background:var(--white);border-bottom:1px solid var(--gray-200);position:sticky;top:0;z-index:50;}
+.topbar-left h1{font-size:18px;font-weight:700;}
+.topbar-left p{font-size:13px;color:var(--gray-500);margin-top:1px;}
+.btn-refresh{display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--primary-light);color:var(--primary-dark);border-radius:var(--radius-sm);font-size:13px;font-weight:600;}
+.btn-refresh:hover{background:var(--primary);color:white;}
+.content{padding:24px 28px;display:flex;flex-direction:column;gap:20px;}
+
+/* Stats Cards */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+.stat-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:20px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.stat-card.c-blue::before{background:var(--primary);}
+.stat-card.c-green::before{background:var(--success);}
+.stat-card.c-orange::before{background:var(--warning);}
+.stat-card.c-purple::before{background:#8b5cf6;}
+.stat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;}
+.stat-icon.bg-blue{background:var(--primary-light);}
+.stat-icon.bg-green{background:var(--success-light);}
+.stat-icon.bg-orange{background:var(--warning-light);}
+.stat-icon.bg-purple{background:#ede9fe;}
+.stat-icon svg{width:20px;height:20px;}
+.stat-label{font-size:11px;font-weight:600;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;}
+.stat-value{font-size:30px;font-weight:800;color:var(--gray-800);}
+.stat-value.blue{color:var(--primary);}
+.stat-value.green{color:var(--success);}
+.stat-value.orange{color:var(--warning);}
+.stat-value.purple{color:#8b5cf6;}
+.stat-sub{font-size:12px;color:var(--gray-400);margin-top:4px;}
+
+/* Charts row */
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.chart-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:20px;box-shadow:var(--shadow-sm);}
+.chart-title{font-size:14px;font-weight:700;color:var(--gray-800);margin-bottom:4px;}
+.chart-sub{font-size:12px;color:var(--gray-400);margin-bottom:16px;}
+.chart-wrap{position:relative;height:220px;}
+
+/* Event Cards Grid */
+.event-cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.event-stat-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:18px;box-shadow:var(--shadow-sm);transition:transform 0.2s,box-shadow 0.2s;cursor:pointer;}
+.event-stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
+.event-stat-card.selected{border-color:var(--primary);box-shadow:0 0 0 2px rgba(26,86,219,0.15);}
+.ec-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;}
+.ec-name{font-size:14px;font-weight:700;color:var(--gray-800);line-height:1.3;flex:1;padding-right:8px;}
+.ec-date{font-size:11px;color:var(--gray-400);margin-top:2px;}
+.ec-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;flex-shrink:0;}
+.ec-badge.upcoming{background:var(--primary-light);color:var(--primary-dark);}
+.ec-badge.done{background:var(--success-light);color:#065f46;}
+.ec-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;}
+.ec-stat{text-align:center;padding:8px 4px;background:var(--gray-50);border-radius:var(--radius-sm);}
+.ec-stat-val{font-size:18px;font-weight:800;color:var(--gray-800);}
+.ec-stat-val.blue{color:var(--primary);}
+.ec-stat-val.green{color:var(--success);}
+.ec-stat-label{font-size:10px;font-weight:600;color:var(--gray-400);text-transform:uppercase;margin-top:2px;}
+.ec-progress{margin-bottom:12px;}
+.ec-progress-label{display:flex;justify-content:space-between;font-size:11px;color:var(--gray-400);margin-bottom:5px;}
+.ec-progress-bar{height:6px;background:var(--gray-200);border-radius:3px;overflow:hidden;}
+.ec-progress-fill{height:100%;border-radius:3px;transition:width 0.4s;}
+.fill-great{background:var(--success);}
+.fill-ok{background:var(--primary);}
+.fill-warn{background:var(--warning);}
+.fill-low{background:var(--danger);}
+.ec-actions{display:flex;gap:8px;}
+.btn-detail{flex:1;padding:7px;background:var(--primary-light);color:var(--primary-dark);border-radius:var(--radius-sm);font-size:12px;font-weight:600;text-align:center;}
+.btn-detail:hover{background:var(--primary);color:white;}
+.btn-gen{flex:1;padding:7px;background:var(--success-light);color:#065f46;border-radius:var(--radius-sm);font-size:12px;font-weight:600;text-align:center;}
+.btn-gen:hover{background:var(--success);color:white;}
+
+/* Detail panel */
+.detail-panel{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:22px;box-shadow:var(--shadow-sm);display:none;}
+.detail-panel.show{display:block;animation:fadeIn 0.3s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:none;}}
+.detail-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.detail-title{font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.btn-close-detail{padding:6px 14px;background:var(--gray-100);color:var(--gray-500);border-radius:var(--radius-sm);font-size:12px;font-weight:600;}
+.btn-close-detail:hover{background:var(--gray-200);}
+.detail-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+.detail-item{background:var(--gray-50);border-radius:var(--radius-sm);padding:14px;}
+.detail-item-label{font-size:10px;font-weight:600;color:var(--gray-400);text-transform:uppercase;margin-bottom:4px;}
+.detail-item-val{font-size:22px;font-weight:800;color:var(--gray-800);}
+.detail-item-val.blue{color:var(--primary);}
+.detail-item-val.green{color:var(--success);}
+.detail-item-val.orange{color:var(--warning);}
+.detail-chart-wrap{height:200px;position:relative;}
+
+/* Section header */
+.section-hdr{display:flex;align-items:center;justify-content:space-between;}
+.section-title{font-size:15px;font-weight:700;color:var(--gray-800);}
+.section-sub{font-size:12px;color:var(--gray-400);margin-top:2px;}
+
+/* Table */
+.table-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);}
+.table-header{padding:16px 20px;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;justify-content:space-between;}
+.table-title{font-size:15px;font-weight:700;}
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+thead th{padding:11px 18px;text-align:left;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--gray-400);background:var(--gray-50);border-bottom:1px solid var(--gray-200);}
+tbody tr{border-bottom:1px solid var(--gray-100);transition:background 0.12s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:var(--gray-50);}
+td{padding:14px 18px;vertical-align:middle;font-size:13px;}
+.badge{display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;}
+.badge-green{background:var(--success-light);color:#065f46;}
+.badge-blue{background:var(--primary-light);color:var(--primary-dark);}
+.badge-orange{background:var(--warning-light);color:#92400e;}
+.progress-wrap{display:flex;align-items:center;gap:8px;}
+.progress-bar{flex:1;height:6px;background:var(--gray-200);border-radius:3px;overflow:hidden;min-width:60px;}
+.progress-fill{height:100%;border-radius:3px;}
+.progress-pct{font-size:12px;font-weight:700;min-width:35px;text-align:right;}
+.btn-sm{padding:5px 12px;border-radius:var(--radius-sm);font-size:12px;font-weight:600;transition:all 0.15s;}
+.btn-sm-blue{background:var(--primary-light);color:var(--primary-dark);}
+.btn-sm-blue:hover{background:var(--primary);color:white;}
+.btn-sm-green{background:var(--success-light);color:#065f46;}
+.btn-sm-green:hover{background:var(--success);color:white;}
+.empty-state{text-align:center;padding:50px 20px;color:var(--gray-400);}
+.empty-state svg{width:44px;height:44px;margin-bottom:12px;opacity:0.3;}
+.empty-state h3{font-size:15px;font-weight:600;color:var(--gray-500);margin-bottom:4px;}
+
+/* Toast */
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+.toast{padding:12px 18px;background:var(--gray-800);color:white;border-radius:var(--radius);font-size:13px;font-weight:500;box-shadow:var(--shadow-md);animation:slideIn 0.3s ease;}
+.toast.success{background:#065f46;}
+.toast.error{background:#991b1b;}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:none;}}
+.hidden{display:none!important;}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5C3.9 4 3 4.9 3 6v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM5 7V6h14v1H5zm2 4h10v2H7v-2zm0 4h7v2H7v-2z"/></svg></div>
+    <span class="brand-name">EventHub</span>
+  </div>
+  <nav class="sidebar-nav">
+    <a class="nav-item" href="dashboard.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>Dashboard</a>
+    <a class="nav-item" href="semua_event.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>Semua Event</a>
+    <a class="nav-item" href="event_saya.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>Event Dikelola</a>
+    <a class="nav-item active" href="laporan.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>Laporan</a>
+    <a class="nav-item" href="broadcast.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 11v2h4v-2h-4zm-2 6.61c.96.71 2.21 1.65 3.2 2.39.4-.53.8-1.07 1.2-1.6-.99-.74-2.24-1.68-3.2-2.4-.4.54-.8 1.08-1.2 1.61zM20.4 5.6c-.4-.53-.8-1.07-1.2-1.6-.99.74-2.24 1.68-3.2 2.4.4.53.8 1.07 1.2 1.6.96-.72 2.21-1.65 3.2-2.4zM4 9c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h1v4h2v-4h1l5 3V6L8 9H4zm11.5 3c0-1.33-.58-2.53-1.5-3.35v6.69c.92-.81 1.5-2.01 1.5-3.34z"/></svg>Broadcast</a>
+    <a class="nav-item" href="pengaturan.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>Pengaturan</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-info" ondblclick="logout()">
+      <div class="user-avatar" id="sidebarAvatar">A</div>
+      <div><div class="user-name" id="sidebarName">Pengguna</div><div class="user-role">Penyelenggara</div></div>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1>Laporan Event</h1>
+      <p>Statistik dan rekap kehadiran peserta event kamu</p>
+    </div>
+    <button class="btn-refresh" onclick="loadLaporan()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+      Refresh
+    </button>
+  </div>
+
+  <div class="content">
+
+    <!-- Stat Cards -->
+    <div class="stats" id="statsArea">
+      <div class="stat-card c-blue">
+        <div class="stat-icon bg-blue"><svg viewBox="0 0 24 24" fill="#1a56db"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg></div>
+        <div class="stat-label">Total Event</div>
+        <div class="stat-value blue" id="statTotal">-</div>
+        <div class="stat-sub">event dikelola</div>
+      </div>
+      <div class="stat-card c-green">
+        <div class="stat-icon bg-green"><svg viewBox="0 0 24 24" fill="#10b981"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
+        <div class="stat-label">Total Pendaftar</div>
+        <div class="stat-value green" id="statPendaftar">-</div>
+        <div class="stat-sub">peserta terdaftar</div>
+      </div>
+      <div class="stat-card c-orange">
+        <div class="stat-icon bg-orange"><svg viewBox="0 0 24 24" fill="#f59e0b"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
+        <div class="stat-label">Total Hadir</div>
+        <div class="stat-value orange" id="statHadir">-</div>
+        <div class="stat-sub">peserta hadir</div>
+      </div>
+      <div class="stat-card c-purple">
+        <div class="stat-icon bg-purple"><svg viewBox="0 0 24 24" fill="#8b5cf6"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg></div>
+        <div class="stat-label">Rata-rata Kehadiran</div>
+        <div class="stat-value purple" id="statPct">-</div>
+        <div class="stat-sub">tingkat kehadiran</div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-row" id="chartsRow" style="display:none;">
+      <div class="chart-card">
+        <div class="chart-title">📊 Pendaftar vs Hadir per Event</div>
+        <div class="chart-sub">Perbandingan jumlah pendaftar dan kehadiran</div>
+        <div class="chart-wrap"><canvas id="chartBar"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">🥧 Distribusi Tingkat Kehadiran</div>
+        <div class="chart-sub">Persentase kehadiran per event</div>
+        <div class="chart-wrap"><canvas id="chartDoughnut"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Detail Panel -->
+    <div class="detail-panel" id="detailPanel">
+      <div class="detail-header">
+        <div class="detail-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#1a56db"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+          <span id="detailNama">Detail Laporan</span>
+        </div>
+        <button class="btn-close-detail" onclick="closeDetail()">✕ Tutup</button>
+      </div>
+      <div class="detail-grid">
+        <div class="detail-item"><div class="detail-item-label">Kapasitas</div><div class="detail-item-val" id="detailKapasitas">-</div></div>
+        <div class="detail-item"><div class="detail-item-label">Total Pendaftar</div><div class="detail-item-val blue" id="detailPendaftar">-</div></div>
+        <div class="detail-item"><div class="detail-item-label">Total Hadir</div><div class="detail-item-val green" id="detailHadir">-</div></div>
+        <div class="detail-item"><div class="detail-item-label">Tingkat Kehadiran</div><div class="detail-item-val orange" id="detailPct">-</div></div>
+      </div>
+      <div class="chart-wrap detail-chart-wrap">
+        <canvas id="chartDetail"></canvas>
+      </div>
+    </div>
+
+    <!-- Event Cards -->
+    <div>
+      <div class="section-hdr" style="margin-bottom:14px;">
+        <div>
+          <div class="section-title">📋 Rekap Per Event</div>
+          <div class="section-sub">Klik kartu untuk melihat detail, atau klik Generate untuk memperbarui data</div>
+        </div>
+      </div>
+      <div class="event-cards-grid" id="eventCardsGrid">
+        <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--gray-400);">Memuat data...</div>
+      </div>
+    </div>
+
+    <!-- Tabel Ringkasan -->
+    <div class="table-card">
+      <div class="table-header">
+        <div class="table-title">📑 Tabel Ringkasan Semua Event</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nama Event</th>
+              <th>Tanggal</th>
+              <th>Kapasitas</th>
+              <th>Pendaftar</th>
+              <th>Hadir</th>
+              <th>Kehadiran</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr><td colspan="8"><div class="empty-state"><h3>Memuat data...</h3></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</main>
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script>
+if (!localStorage.getItem('token')) { window.location.href = 'login.html'; }
+
+var namaUser = localStorage.getItem('namaUser') || 'Pengguna';
+var roleUser  = localStorage.getItem('roleUser') || 'peserta';
+var idUser    = localStorage.getItem('idUser');
+
+if (roleUser !== 'penyelenggara') { window.location.href = 'dashboard.html'; }
+
+document.getElementById('sidebarName').textContent  = namaUser;
+document.getElementById('sidebarAvatar').textContent = namaUser.charAt(0).toUpperCase();
+
+var laporanData = [];
+var chartBar = null;
+var chartDoughnut = null;
+var chartDetail = null;
+
+function loadLaporan() {
+  fetch('/api/laporan/penyelenggara/' + idUser)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      laporanData = data;
+      renderStats(data);
+      renderEventCards(data);
+      renderTable(data);
+      if (data.length > 0) {
+        document.getElementById('chartsRow').style.display = 'grid';
+        renderCharts(data);
+      }
+    })
+    .catch(function() {
+      document.getElementById('tableBody').innerHTML =
+        '<tr><td colspan="8"><div class="empty-state"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg><h3>Gagal memuat data</h3></div></td></tr>';
+    });
+}
+
+function renderStats(data) {
+  var totalPendaftar = data.reduce(function(a,b){return a+b.totalPendaftar;},0);
+  var totalHadir     = data.reduce(function(a,b){return a+b.totalHadir;},0);
+  var pct = totalPendaftar > 0 ? Math.round(totalHadir/totalPendaftar*100) : 0;
+  document.getElementById('statTotal').textContent     = data.length;
+  document.getElementById('statPendaftar').textContent = totalPendaftar;
+  document.getElementById('statHadir').textContent     = totalHadir;
+  document.getElementById('statPct').textContent       = pct + '%';
+}
+
+function renderCharts(data) {
+  var labels  = data.map(function(d){ return d.namaEvent.length > 15 ? d.namaEvent.substring(0,15)+'…' : d.namaEvent; });
+  var daftar  = data.map(function(d){ return d.totalPendaftar; });
+  var hadir   = data.map(function(d){ return d.totalHadir; });
+  var pcts    = data.map(function(d){ return d.totalPendaftar > 0 ? Math.round(d.totalHadir/d.totalPendaftar*100) : 0; });
+
+  // Bar chart
+  if (chartBar) chartBar.destroy();
+  var ctxBar = document.getElementById('chartBar').getContext('2d');
+  chartBar = new Chart(ctxBar, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        { label: 'Pendaftar', data: daftar, backgroundColor: 'rgba(26,86,219,0.7)', borderRadius: 6 },
+        { label: 'Hadir',     data: hadir,  backgroundColor: 'rgba(16,185,129,0.7)', borderRadius: 6 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top', labels: { font: { family: 'Plus Jakarta Sans', size: 11 } } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', size: 11 } } },
+        y: { beginAtZero: true, ticks: { stepSize: 1, font: { family: 'Plus Jakarta Sans', size: 11 } } }
+      }
+    }
+  });
+
+  // Doughnut chart
+  if (chartDoughnut) chartDoughnut.destroy();
+  var ctxD = document.getElementById('chartDoughnut').getContext('2d');
+  var bgColors = ['#1a56db','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4'];
+  chartDoughnut = new Chart(ctxD, {
+    type: 'doughnut',
+    data: {
+      labels: labels.map(function(l,i){ return l + ' (' + pcts[i] + '%)'; }),
+      datasets: [{ data: pcts.length ? pcts : [1], backgroundColor: bgColors, borderWidth: 2, borderColor: '#fff' }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      cutout: '60%',
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { family: 'Plus Jakarta Sans', size: 11 }, padding: 12 } }
+      }
+    }
+  });
+}
+
+function renderEventCards(data) {
+  var grid = document.getElementById('eventCardsGrid');
+  if (!data.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:50px;color:var(--gray-400);"><h3 style="font-size:15px;font-weight:600;color:var(--gray-500);">Belum ada event yang dikelola</h3></div>';
+    return;
+  }
+  grid.innerHTML = data.map(function(item) {
+    var pct = item.totalPendaftar > 0 ? Math.round(item.totalHadir/item.totalPendaftar*100) : 0;
+    var fillClass = pct >= 80 ? 'fill-great' : pct >= 50 ? 'fill-ok' : pct > 0 ? 'fill-warn' : 'fill-low';
+    var pctColor  = pct >= 80 ? '#10b981' : pct >= 50 ? '#1a56db' : pct > 0 ? '#f59e0b' : '#94a3b8';
+    var kapPct = item.kapasitas > 0 ? Math.round(item.totalPendaftar/item.kapasitas*100) : 0;
+    return '<div class="event-stat-card" id="ecard-'+item.eventId+'" onclick="lihatDetail('+item.eventId+')">' +
+      '<div class="ec-header">' +
+        '<div><div class="ec-name">'+item.namaEvent+'</div><div class="ec-date">📅 '+item.tanggal+'</div></div>' +
+        '<span class="ec-badge upcoming">'+item.kapasitas+' kursi</span>' +
+      '</div>' +
+      '<div class="ec-stats">' +
+        '<div class="ec-stat"><div class="ec-stat-val">'+item.kapasitas+'</div><div class="ec-stat-label">Kapasitas</div></div>' +
+        '<div class="ec-stat"><div class="ec-stat-val blue">'+item.totalPendaftar+'</div><div class="ec-stat-label">Daftar</div></div>' +
+        '<div class="ec-stat"><div class="ec-stat-val green">'+item.totalHadir+'</div><div class="ec-stat-label">Hadir</div></div>' +
+      '</div>' +
+      '<div class="ec-progress">' +
+        '<div class="ec-progress-label"><span>Tingkat Kehadiran</span><span style="font-weight:700;color:'+pctColor+';">'+pct+'%</span></div>' +
+        '<div class="ec-progress-bar"><div class="ec-progress-fill '+fillClass+'" style="width:'+pct+'%"></div></div>' +
+      '</div>' +
+      '<div class="ec-progress" style="margin-bottom:14px;">' +
+        '<div class="ec-progress-label"><span>Terisi dari Kapasitas</span><span>'+kapPct+'%</span></div>' +
+        '<div class="ec-progress-bar"><div class="ec-progress-fill fill-ok" style="width:'+kapPct+'%"></div></div>' +
+      '</div>' +
+      '<div class="ec-actions">' +
+        '<button class="btn-sm btn-detail" onclick="event.stopPropagation();lihatDetail('+item.eventId+')">📊 Detail</button>' +
+        '<button class="btn-sm btn-gen" onclick="event.stopPropagation();generateLaporan('+item.eventId+')">🔄 Generate</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderTable(data) {
+  var tbody = document.getElementById('tableBody');
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg><h3>Belum ada event</h3></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map(function(item, idx) {
+    var pct = item.totalPendaftar > 0 ? Math.round(item.totalHadir/item.totalPendaftar*100) : 0;
+    var fillClass = pct >= 80 ? 'fill-great' : pct >= 50 ? 'fill-ok' : 'fill-warn';
+    var pctColor  = pct >= 80 ? '#10b981' : pct >= 50 ? '#1a56db' : '#f59e0b';
+    return '<tr>' +
+      '<td style="color:var(--gray-400);font-weight:600;">'+(idx+1)+'</td>' +
+      '<td><strong>'+item.namaEvent+'</strong></td>' +
+      '<td style="color:var(--gray-500);">📅 '+item.tanggal+'</td>' +
+      '<td>'+item.kapasitas+' orang</td>' +
+      '<td><span class="badge badge-blue">'+item.totalPendaftar+' orang</span></td>' +
+      '<td><span class="badge badge-green">'+item.totalHadir+' orang</span></td>' +
+      '<td><div class="progress-wrap">'+
+        '<div class="progress-bar"><div class="progress-fill '+fillClass+'" style="width:'+pct+'%"></div></div>'+
+        '<span class="progress-pct" style="color:'+pctColor+';">'+pct+'%</span>'+
+      '</div></td>' +
+      '<td style="display:flex;gap:6px;">'+
+        '<button class="btn-sm btn-sm-blue" onclick="lihatDetail('+item.eventId+')">Detail</button>'+
+        '<button class="btn-sm btn-sm-green" onclick="generateLaporan('+item.eventId+')">Generate</button>'+
+      '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function lihatDetail(eventId) {
+  // Highlight selected card
+  document.querySelectorAll('.event-stat-card').forEach(function(c){ c.classList.remove('selected'); });
+  var card = document.getElementById('ecard-'+eventId);
+  if (card) card.classList.add('selected');
+
+  fetch('/api/laporan/event/' + eventId)
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      if (!data.success) { showToast('❌ ' + data.message, 'error'); return; }
+      document.getElementById('detailNama').textContent      = '📊 ' + data.namaEvent;
+      document.getElementById('detailKapasitas').textContent = data.kapasitas;
+      document.getElementById('detailPendaftar').textContent = data.totalPendaftar;
+      document.getElementById('detailHadir').textContent     = data.totalHadir;
+      var pct = data.totalPendaftar > 0 ? Math.round(data.totalHadir/data.totalPendaftar*100) : 0;
+      document.getElementById('detailPct').textContent       = pct + '%';
+      document.getElementById('detailPanel').classList.add('show');
+
+      // Detail chart
+      if (chartDetail) chartDetail.destroy();
+      var ctx = document.getElementById('chartDetail').getContext('2d');
+      chartDetail = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Kapasitas', 'Pendaftar', 'Hadir'],
+          datasets: [{
+            data: [data.kapasitas, data.totalPendaftar, data.totalHadir],
+            backgroundColor: ['rgba(139,92,246,0.7)','rgba(26,86,219,0.7)','rgba(16,185,129,0.7)'],
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false }, ticks: { font: { family:'Plus Jakarta Sans', size:12 } } },
+            y: { beginAtZero: true, ticks: { stepSize: 1, font: { family:'Plus Jakarta Sans', size:11 } } }
+          }
+        }
+      });
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    })
+    .catch(function(){ showToast('❌ Gagal memuat detail', 'error'); });
+}
+
+function closeDetail() {
+  document.getElementById('detailPanel').classList.remove('show');
+  document.querySelectorAll('.event-stat-card').forEach(function(c){ c.classList.remove('selected'); });
+}
+
+function generateLaporan(eventId) {
+  if (!confirm('Generate laporan terbaru untuk event ini?')) return;
+  fetch('/api/laporan/generate/' + eventId, { method: 'POST' })
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      showToast(data.success ? '✅ Laporan berhasil digenerate!' : '❌ ' + data.message,
+                data.success ? 'success' : 'error');
+      if (data.success) loadLaporan();
+    })
+    .catch(function(){ showToast('❌ Gagal konek ke server!', 'error'); });
+}
+
+function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+
+function showToast(msg, type) {
+  type = type || 'info';
+  var wrap = document.getElementById('toast-wrap');
+  var t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  wrap.appendChild(t);
+  setTimeout(function(){
+    t.style.opacity='0'; t.style.transition='opacity 0.3s';
+    setTimeout(function(){ t.remove(); }, 300);
+  }, 3000);
+}
+
+loadLaporan();
+</script>
+</body>
+</html>

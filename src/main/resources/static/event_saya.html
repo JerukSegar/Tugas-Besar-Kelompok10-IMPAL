@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Event Saya — EventHub</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--primary:#1a56db;--primary-dark:#1341b3;--primary-light:#ebf1fd;--sidebar-bg:#0f2044;--sidebar-hover:rgba(255,255,255,0.07);--sidebar-active:rgba(255,255,255,0.14);--white:#ffffff;--gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;--gray-300:#cbd5e1;--gray-400:#94a3b8;--gray-500:#64748b;--gray-600:#475569;--gray-700:#334155;--gray-800:#1e293b;--success:#10b981;--success-light:#d1fae5;--warning:#f59e0b;--warning-light:#fef3c7;--danger:#ef4444;--danger-light:#fee2e2;--font:'Plus Jakarta Sans',sans-serif;--shadow-sm:0 1px 3px rgba(0,0,0,0.07);--shadow:0 2px 8px rgba(0,0,0,0.08);--shadow-md:0 4px 16px rgba(0,0,0,0.1);--radius-sm:6px;--radius:10px;--radius-lg:14px;--sidebar-w:220px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--gray-50);color:var(--gray-800);display:flex;min-height:100vh;font-size:14px;}
+button{cursor:pointer;font-family:var(--font);border:none;outline:none;}
+.sidebar{width:var(--sidebar-w);min-height:100vh;background:var(--sidebar-bg);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;}
+.sidebar-brand{display:flex;align-items:center;gap:10px;padding:22px 18px 18px;border-bottom:1px solid rgba(255,255,255,0.07);}
+.brand-icon{width:36px;height:36px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(26,86,219,0.4);}
+.brand-icon svg{width:20px;height:20px;fill:white;}
+.brand-name{font-size:17px;font-weight:700;color:white;}
+.sidebar-nav{flex:1;padding:14px 10px;display:flex;flex-direction:column;gap:2px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);color:rgba(255,255,255,0.6);font-size:13.5px;font-weight:500;cursor:pointer;transition:all 0.18s;text-decoration:none;}
+.nav-item:hover{background:var(--sidebar-hover);color:rgba(255,255,255,0.9);}
+.nav-item.active{background:var(--sidebar-active);color:white;font-weight:600;}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:0.8;}
+.nav-item.active svg{opacity:1;}
+.sidebar-footer{padding:14px 10px;border-top:1px solid rgba(255,255,255,0.07);}
+.user-info{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;}
+.user-info:hover{background:var(--sidebar-hover);border-radius:var(--radius-sm);}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:white;flex-shrink:0;}
+.user-name{font-size:13px;font-weight:600;color:white;}
+.user-role{font-size:11px;color:rgba(255,255,255,0.4);}
+.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;background:var(--white);border-bottom:1px solid var(--gray-200);position:sticky;top:0;z-index:50;}
+.topbar h1{font-size:18px;font-weight:700;}
+.topbar p{font-size:13px;color:var(--gray-500);margin-top:1px;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.icon-btn{width:36px;height:36px;border-radius:var(--radius-sm);background:var(--gray-100);display:flex;align-items:center;justify-content:center;border:1px solid var(--gray-200);color:var(--gray-500);}
+.icon-btn svg{width:16px;height:16px;}
+.btn-buat{padding:9px 16px;background:var(--primary);color:white;border-radius:var(--radius-sm);font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;}
+.btn-buat:hover{background:var(--primary-dark);}
+.content{padding:24px 28px;}
+.stats-mini{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px;}
+.stat-mini{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:16px 18px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow-sm);}
+.stat-icon{width:40px;height:40px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;}
+.stat-icon svg{width:20px;height:20px;}
+.stat-label{font-size:12px;color:var(--gray-400);font-weight:500;}
+.stat-value{font-size:22px;font-weight:800;color:var(--gray-800);}
+.tabs{display:flex;gap:0;margin-bottom:22px;border-bottom:2px solid var(--gray-200);}
+.tab{padding:10px 20px;font-size:13px;font-weight:600;color:var(--gray-400);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.18s;}
+.tab:hover{color:var(--gray-600);}
+.tab.active{color:var(--primary);border-bottom-color:var(--primary);}
+.tab-count{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;background:var(--primary-light);color:var(--primary);font-size:10px;font-weight:700;border-radius:50%;margin-left:6px;}
+.tab.active .tab-count{background:var(--primary);color:white;}
+.table-card{background:var(--white);border-radius:var(--radius-lg);border:1px solid var(--gray-200);overflow:hidden;box-shadow:var(--shadow-sm);}
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+thead th{padding:11px 18px;text-align:left;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--gray-400);background:var(--gray-50);border-bottom:1px solid var(--gray-200);}
+tbody tr{border-bottom:1px solid var(--gray-100);transition:background 0.12s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:var(--gray-50);}
+td{padding:14px 18px;vertical-align:middle;}
+.td-event{display:flex;align-items:center;gap:12px;}
+.event-dot{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.event-dot svg{width:18px;height:18px;}
+.event-title{font-size:14px;font-weight:600;color:var(--gray-800);}
+.event-org{font-size:12px;color:var(--gray-400);margin-top:1px;}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;}
+.badge-upcoming{background:var(--primary-light);color:var(--primary-dark);}
+.badge-done{background:var(--gray-100);color:var(--gray-500);}
+.badge-cancelled{background:var(--danger-light);color:var(--danger);}
+.event-tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;padding:3px 8px;border-radius:20px;}
+.tag-seminar{background:#dbeafe;color:#1d4ed8;}
+.tag-workshop{background:#d1fae5;color:#065f46;}
+.tag-konferensi{background:#ede9fe;color:#5b21b6;}
+.tag-webinar{background:#fef3c7;color:#92400e;}
+.tag-bootcamp{background:#fee2e2;color:#991b1b;}
+td.td-muted{font-size:13px;color:var(--gray-500);}
+td.td-code{font-family:monospace;font-size:12px;color:var(--gray-400);font-weight:600;}
+.btn-sm{padding:6px 14px;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;}
+.btn-view{background:var(--primary-light);color:var(--primary-dark);}
+.btn-view:hover{background:var(--primary);color:white;}
+.btn-cancel{background:var(--danger-light);color:var(--danger);}
+.btn-cancel:hover{background:var(--danger);color:white;}
+.btn-edit{background:var(--warning-light);color:#92400e;}
+.btn-edit:hover{background:var(--warning);color:white;}
+.btn-hapus{background:var(--danger-light);color:var(--danger);}
+.btn-hapus:hover{background:var(--danger);color:white;}
+.td-actions{display:flex;gap:6px;}
+.empty-state{text-align:center;padding:60px 20px;color:var(--gray-400);}
+.empty-state svg{width:48px;height:48px;margin-bottom:14px;opacity:0.3;}
+.empty-state h3{font-size:16px;font-weight:600;color:var(--gray-600);margin-bottom:6px;}
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+.toast{padding:12px 18px;background:var(--gray-800);color:white;border-radius:var(--radius);font-size:13px;font-weight:500;box-shadow:var(--shadow-md);animation:slideIn 0.3s ease;}
+.toast.success{background:#065f46;}
+.toast.error{background:#991b1b;}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:none;}}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--white);border-radius:var(--radius-lg);width:100%;max-width:520px;box-shadow:0 20px 50px rgba(0,0,0,0.15);}
+.modal-header{padding:20px 22px;border-bottom:1px solid var(--gray-200);display:flex;justify-content:space-between;align-items:center;}
+.modal-title{font-size:16px;font-weight:700;}
+.modal-close{width:28px;height:28px;border-radius:6px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;font-size:16px;color:var(--gray-500);}
+.modal-body{padding:22px;}
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:12px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;}
+.form-input{width:100%;padding:10px 14px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-size:14px;color:var(--gray-800);font-family:var(--font);}
+.form-input:focus{outline:none;border-color:var(--primary);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.modal-footer{padding:16px 22px;border-top:1px solid var(--gray-200);display:flex;gap:10px;justify-content:flex-end;}
+.btn-primary{padding:10px 22px;background:var(--primary);color:white;border-radius:var(--radius-sm);font-size:13px;font-weight:600;}
+.btn-primary:hover{background:var(--primary-dark);}
+.btn-outline{padding:10px 18px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-size:13px;font-weight:600;color:var(--gray-600);background:white;}
+.hidden{display:none!important;}
+
+/* ── Scroll Date Picker ── */
+.dp-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:500;display:none;align-items:flex-end;justify-content:center;}
+.dp-overlay.open{display:flex;}
+.dp-sheet{background:#fff;width:100%;max-width:520px;border-radius:20px 20px 0 0;padding-bottom:env(safe-area-inset-bottom,0px);box-shadow:0 -8px 30px rgba(0,0,0,0.15);}
+.dp-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 10px;border-bottom:1px solid var(--gray-100);}
+.dp-header span{font-size:15px;font-weight:700;color:var(--gray-800);}
+.dp-btn-ok{padding:8px 20px;background:var(--primary);color:#fff;border-radius:8px;font-size:13px;font-weight:600;border:none;cursor:pointer;}
+.dp-btn-cancel{padding:8px 14px;background:none;color:var(--gray-500);font-size:13px;font-weight:600;border:none;cursor:pointer;}
+.dp-drums{display:flex;gap:0;padding:0 20px 20px;justify-content:center;}
+.dp-drum-wrap{flex:1;display:flex;flex-direction:column;align-items:center;}
+.dp-drum-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-400);margin-bottom:8px;}
+.dp-drum{height:180px;overflow:hidden;position:relative;cursor:grab;}
+.dp-drum:active{cursor:grabbing;}
+.dp-drum-inner{display:flex;flex-direction:column;transition:transform .15s ease;}
+.dp-drum-inner div{height:36px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;color:var(--gray-400);transition:color .1s,font-size .1s,font-weight .1s;}
+.dp-drum-inner div.sel{color:var(--gray-800);font-size:17px;font-weight:700;}
+.dp-drum::before,.dp-drum::after{content:'';position:absolute;left:0;right:0;height:60px;z-index:2;pointer-events:none;}
+.dp-drum::before{top:0;background:linear-gradient(to bottom,rgba(255,255,255,.95),rgba(255,255,255,0));}
+.dp-drum::after{bottom:0;background:linear-gradient(to top,rgba(255,255,255,.95),rgba(255,255,255,0));}
+.dp-selector{position:absolute;top:50%;transform:translateY(-50%);left:4px;right:4px;height:36px;border-top:2px solid var(--primary);border-bottom:2px solid var(--primary);border-radius:6px;pointer-events:none;z-index:1;}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5C3.9 4 3 4.9 3 6v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM5 7V6h14v1H5zm2 4h10v2H7v-2zm0 4h7v2H7v-2z"/></svg></div>
+    <span class="brand-name">EventHub</span>
+  </div>
+  <nav class="sidebar-nav">
+    <a class="nav-item" href="dashboard.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>Dashboard</a>
+    <a class="nav-item" href="semua_event.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>Semua Event</a>
+    <a class="nav-item active" href="event_saya.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg><span id="labelEventSaya">Event Saya</span></a>
+    <a class="nav-item" href="tiket_saya.html" id="navTiket"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 10V6c0-1.11-.9-2-2-2H4c-1.1 0-1.99.89-1.99 2v4c1.1 0 1.99.9 1.99 2s-.89 2-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2s.9-2 2-2z"/></svg>Tiket Saya</a>
+    <a class="nav-item" href="checkin_saya.html" id="navCheckin"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>Check-In</a>
+    <a class="nav-item" href="sertifikat_saya.html" id="navSertifikat"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 008 20c3 0 7-3.5 6-8 0 0 2 4 0 8 1.28.56 2.82 1 5 1 .5-3.5-1-7.9-2-10z"/></svg>Sertifikat</a>
+    <a class="nav-item hidden" href="laporan.html" id="navLaporan"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>Laporan</a>
+    <a class="nav-item hidden" href="broadcast.html" id="navBroadcast"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 11v2h4v-2h-4zm-2 6.61c.96.71 2.21 1.65 3.2 2.39.4-.53.8-1.07 1.2-1.6-.99-.74-2.24-1.68-3.2-2.4-.4.54-.8 1.08-1.2 1.61zM20.4 5.6c-.4-.53-.8-1.07-1.2-1.6-.99.74-2.24 1.68-3.2 2.4.4.53.8 1.07 1.2 1.6.96-.72 2.21-1.65 3.2-2.4zM4 9c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h1v4h2v-4h1l5 3V6L8 9H4zm11.5 3c0-1.33-.58-2.53-1.5-3.35v6.69c.92-.81 1.5-2.01 1.5-3.34z"/></svg>Broadcast</a>
+    <a class="nav-item" href="pengaturan.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>Pengaturan</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-info" ondblclick="logout()">
+      <div class="user-avatar" id="sidebarAvatar">A</div>
+      <div><div class="user-name" id="sidebarName">Pengguna</div><div class="user-role" id="sidebarRole">Peserta</div></div>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div>
+      <h1 id="pageTitle">Event Saya</h1>
+      <p id="pageDesc">Daftar event yang kamu ikuti</p>
+    </div>
+    <div class="topbar-right">
+      <div class="icon-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg></div>
+      <button class="btn-buat hidden" id="btnBuatEvent" onclick="openModalBuat()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+        Buat Event
+      </button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="stats-mini" id="statsArea"></div>
+    <div class="tabs" id="tabsArea"></div>
+    <div class="table-card">
+      <div class="table-wrap">
+        <table>
+          <thead id="tableHead"></thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Buat Event Baru</div>
+      <button class="modal-close" onclick="document.getElementById('modal-overlay').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nama Event</label>
+          <input class="form-input" type="text" id="inputNama" placeholder="Nama event"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Kategori</label>
+          <select class="form-input" id="inputKategori">
+            <option value="seminar">Seminar</option>
+            <option value="workshop">Workshop</option>
+            <option value="konferensi">Konferensi</option>
+            <option value="webinar">Webinar</option>
+            <option value="bootcamp">Bootcamp</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tanggal</label>
+          <div class="form-input date-picker-trigger" id="dateTrigger" onclick="openDatePicker()" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;">
+            <span id="dateTriggerText" style="color:var(--gray-400);">Pilih tanggal</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="color:var(--gray-400);flex-shrink:0;"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+          </div>
+          <input type="hidden" id="inputTanggal"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Waktu</label>
+          <input class="form-input" type="text" id="inputWaktu" placeholder="08.00–17.00 WIB"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Lokasi (Kota)</label>
+          <input class="form-input" type="text" id="inputLokasi" placeholder="Jakarta"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Venue</label>
+          <input class="form-input" type="text" id="inputVenue" placeholder="Nama gedung/platform"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Deskripsi</label>
+        <textarea class="form-input" id="inputDeskripsi" rows="3" placeholder="Deskripsi event..." style="resize:vertical;"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Penyelenggara</label>
+        <input class="form-input" type="text" id="inputPenyelenggara" placeholder="Nama"/>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Harga</label>
+          <input class="form-input" type="text" id="inputHarga" placeholder="Gratis / Rp 100.000"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipe Harga</label>
+          <select class="form-input" id="inputTipeHarga">
+            <option value="free">Gratis</option>
+            <option value="paid">Berbayar</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Kapasitas Peserta</label>
+        <input class="form-input" type="number" id="inputKapasitas" placeholder="100" min="1"/>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="document.getElementById('modal-overlay').classList.remove('open')">Batal</button>
+      <button class="btn-primary" id="btnSimpan" onclick="simpanEvent()">Simpan Event</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scroll Date Picker -->
+<div class="dp-overlay" id="dp-overlay" onclick="dpOverlayClick(event)">
+  <div class="dp-sheet">
+    <div class="dp-header">
+      <button class="dp-btn-cancel" onclick="closeDatePicker()">Batal</button>
+      <span>Pilih Tanggal</span>
+      <button class="dp-btn-ok" onclick="confirmDate()">OK</button>
+    </div>
+    <div class="dp-drums">
+      <div class="dp-drum-wrap">
+        <div class="dp-drum-label">Hari</div>
+        <div class="dp-drum" id="drumHari"><div class="dp-selector"></div><div class="dp-drum-inner" id="drumHariInner"></div></div>
+      </div>
+      <div class="dp-drum-wrap">
+        <div class="dp-drum-label">Bulan</div>
+        <div class="dp-drum" id="drumBulan"><div class="dp-selector"></div><div class="dp-drum-inner" id="drumBulanInner"></div></div>
+      </div>
+      <div class="dp-drum-wrap">
+        <div class="dp-drum-label">Tahun</div>
+        <div class="dp-drum" id="drumTahun"><div class="dp-selector"></div><div class="dp-drum-inner" id="drumTahunInner"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script>
+if (!localStorage.getItem('token')) { window.location.href = 'login.html'; }
+
+const namaUser = localStorage.getItem('namaUser') || 'Pengguna';
+const roleUser = localStorage.getItem('roleUser') || 'peserta';
+const idUser = localStorage.getItem('idUser');
+
+document.getElementById('sidebarName').textContent = namaUser;
+document.getElementById('sidebarRole').textContent = roleUser.charAt(0).toUpperCase() + roleUser.slice(1);
+document.getElementById('sidebarAvatar').textContent = namaUser.charAt(0).toUpperCase();
+
+let myData = [];
+let activeTab = 'all';
+let editId = null;
+
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+function thumbColor(k) { return {seminar:'#dbeafe',workshop:'#d1fae5',konferensi:'#ede9fe',webinar:'#fef3c7',bootcamp:'#fee2e2'}[k] || '#f1f5f9'; }
+function thumbIcon(k) { return {seminar:'#3b82f6',workshop:'#10b981',konferensi:'#8b5cf6',webinar:'#f59e0b',bootcamp:'#ef4444'}[k] || '#94a3b8'; }
+
+if (roleUser === 'penyelenggara') {
+  document.getElementById('navTiket').classList.add('hidden');
+  document.getElementById('navCheckin').classList.add('hidden');
+  document.getElementById('navSertifikat').classList.add('hidden');
+  document.getElementById('navLaporan').classList.remove('hidden');
+  document.getElementById('navBroadcast').classList.remove('hidden');
+  document.getElementById('labelEventSaya').textContent = 'Event Dikelola';
+  document.getElementById('pageTitle').textContent = 'Event Dikelola';
+  document.getElementById('pageDesc').textContent = 'Event yang kamu buat dan kelola';
+  document.getElementById('btnBuatEvent').classList.remove('hidden');
+  loadEventPenyelenggara();
+} else {
+  document.getElementById('navSertifikat').classList.remove('hidden');
+  document.getElementById('navLaporan').classList.add('hidden');
+  document.getElementById('navBroadcast').classList.add('hidden');
+  loadEventPeserta();
+}
+
+function loadEventPeserta() {
+  fetch('/api/events/saya/' + idUser)
+    .then(r => r.json())
+    .then(data => {
+      myData = data;
+      const total = data.length;
+      const selesai = data.filter(e => e.status === 'done').length;
+      const upcoming = data.filter(e => e.status === 'upcoming').length;
+      document.getElementById('statsArea').innerHTML = `
+        <div class="stat-mini"><div class="stat-icon" style="background:#ebf1fd;"><svg viewBox="0 0 24 24" fill="#1a56db"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg></div><div><div class="stat-label">Total Terdaftar</div><div class="stat-value">${total}</div></div></div>
+        <div class="stat-mini"><div class="stat-icon" style="background:#d1fae5;"><svg viewBox="0 0 24 24" fill="#10b981"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div><div><div class="stat-label">Selesai Dihadiri</div><div class="stat-value">${selesai}</div></div></div>
+        <div class="stat-mini"><div class="stat-icon" style="background:#fef3c7;"><svg viewBox="0 0 24 24" fill="#f59e0b"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg></div><div><div class="stat-label">Akan Datang</div><div class="stat-value">${upcoming}</div></div></div>`;
+      document.getElementById('tabsArea').innerHTML = `
+        <div class="tab active" onclick="setTab('all',this)">Semua <span class="tab-count">${total}</span></div>
+        <div class="tab" onclick="setTab('upcoming',this)">Akan Datang <span class="tab-count">${upcoming}</span></div>
+        <div class="tab" onclick="setTab('done',this)">Selesai <span class="tab-count">${selesai}</span></div>`;
+      document.getElementById('tableHead').innerHTML = `<tr><th>Event</th><th>Tanggal</th><th>Lokasi</th><th>Kategori</th><th>Status</th><th>Kode Tiket</th><th>Aksi</th></tr>`;
+      renderPeserta();
+    })
+    .catch(() => showToast('❌ Gagal memuat data', 'error'));
+}
+
+function setTab(tab, el) {
+  activeTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderPeserta();
+}
+
+function renderPeserta() {
+  const tbody = document.getElementById('table-body');
+  let data = myData;
+  if (activeTab !== 'all') data = data.filter(e => e.status === activeTab);
+  if (!data.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-2.18c.07-.44.18-.88.18-1.36C18 2.06 15.96 0 13.5 0S9 2.06 9 4.64c0 .48.11.92.18 1.36H7c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h13c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6.5-4c1.38 0 2.5 1.12 2.5 2.5S14.88 7 13.5 7 11 5.88 11 4.5 12.12 2 13.5 2zM20 20H7V8h13v12z"/></svg><h3>Belum ada event</h3><p>Kamu belum mendaftar event apapun</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = data.map(e => `<tr>
+    <td><div class="td-event">
+      <div class="event-dot" style="background:${thumbColor(e.kategori)};"><svg viewBox="0 0 24 24" fill="${thumbIcon(e.kategori)}"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg></div>
+      <div><div class="event-title">${e.nama || '-'}</div><div class="event-org">${e.penyelenggara || '-'}</div></div>
+    </div></td>
+    <td class="td-muted">📅 ${e.tanggal || '-'}</td>
+    <td class="td-muted">📍 ${e.lokasi || '-'}</td>
+    <td><span class="event-tag tag-${e.kategori}">${cap(e.kategori || 'lainnya')}</span></td>
+    <td>${e.status === 'upcoming' ? '<span class="badge badge-upcoming">Akan Datang</span>' : '<span class="badge badge-done">Selesai</span>'}</td>
+    <td class="td-code">${e.kodeTiket}</td>
+    <td><div class="td-actions">
+      <button class="btn-sm btn-view" onclick="showToast('Kode tiket: ${e.kodeTiket}','success')">Detail</button>
+      ${e.status === 'upcoming' ? `<button class="btn-sm btn-cancel" onclick="batalDaftar(${e.eventId})">Batal</button>` : ''}
+    </div></td>
+  </tr>`).join('');
+}
+
+function batalDaftar(eventId) {
+  if (!confirm('Yakin mau batalkan pendaftaran ini?')) return;
+  fetch('/api/events/batal', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId: idUser, eventId: eventId })
+  })
+  .then(r => r.json())
+  .then(data => {
+    showToast((data.success ? '✅ ' : '⚠️ ') + data.message, data.success ? 'success' : 'error');
+    if (data.success) loadEventPeserta();
+  })
+  .catch(() => showToast('❌ Gagal konek ke server!', 'error'));
+}
+
+function loadEventPenyelenggara() {
+  fetch('/api/events/kelola/' + idUser)
+    .then(r => r.json())
+    .then(data => {
+      myData = data;
+      const total = data.length;
+      const totalPeserta = data.reduce((a, b) => a + b.terisi, 0);
+      const totalKap = data.reduce((a, b) => a + b.kapasitas, 0);
+      document.getElementById('statsArea').innerHTML = `
+        <div class="stat-mini"><div class="stat-icon" style="background:#ebf1fd;"><svg viewBox="0 0 24 24" fill="#1a56db"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg></div><div><div class="stat-label">Event Dikelola</div><div class="stat-value">${total}</div></div></div>
+        <div class="stat-mini"><div class="stat-icon" style="background:#d1fae5;"><svg viewBox="0 0 24 24" fill="#10b981"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></div><div><div class="stat-label">Total Peserta</div><div class="stat-value">${totalPeserta}</div></div></div>
+        <div class="stat-mini"><div class="stat-icon" style="background:#fef3c7;"><svg viewBox="0 0 24 24" fill="#f59e0b"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg></div><div><div class="stat-label">Total Kapasitas</div><div class="stat-value">${totalKap}</div></div></div>`;
+      document.getElementById('tabsArea').innerHTML = `<div class="tab active" onclick="setTabP('all',this)">Semua <span class="tab-count">${total}</span></div>`;
+      document.getElementById('tableHead').innerHTML = `<tr><th>Event</th><th>Tanggal</th><th>Lokasi</th><th>Kategori</th><th>Peserta</th><th>Harga</th><th>Aksi</th></tr>`;
+      renderPenyelenggara();
+    })
+    .catch(() => showToast('❌ Gagal memuat data', 'error'));
+}
+
+function setTabP(tab, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderPenyelenggara();
+}
+
+function renderPenyelenggara() {
+  const tbody = document.getElementById('table-body');
+  if (!myData.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg><h3>Belum ada event</h3><p>Klik "Buat Event" untuk membuat event pertamamu</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = myData.map(e => `<tr>
+    <td><div class="td-event">
+      <div class="event-dot" style="background:${thumbColor(e.kategori)};"><svg viewBox="0 0 24 24" fill="${thumbIcon(e.kategori)}"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg></div>
+      <div><div class="event-title">${e.nama}</div><div class="event-org">${e.venue}, ${e.lokasi}</div></div>
+    </div></td>
+    <td class="td-muted">📅 ${e.tanggal}</td>
+    <td class="td-muted">📍 ${e.lokasi}</td>
+    <td><span class="event-tag tag-${e.kategori}">${cap(e.kategori)}</span></td>
+    <td class="td-muted">${e.terisi}/${e.kapasitas}</td>
+    <td class="td-muted">${e.tipeHarga === 'free' ? '<span style="color:#10b981;font-weight:600;">Gratis</span>' : e.harga}</td>
+    <td><div class="td-actions">
+      <button class="btn-sm btn-edit" onclick="openModalEdit(${e.id})">Edit</button>
+      <button class="btn-sm btn-hapus" onclick="hapusEvent(${e.id})">Hapus</button>
+    </div></td>
+  </tr>`).join('');
+}
+
+function openModalBuat() {
+  editId = null;
+  document.getElementById('modalTitle').textContent = 'Buat Event Baru';
+  document.getElementById('btnSimpan').textContent = 'Buat Event';
+  ['inputNama','inputTanggal','inputWaktu','inputLokasi','inputVenue','inputDeskripsi','inputPenyelenggara','inputHarga','inputKapasitas'].forEach(id => document.getElementById(id).value = '');
+  const trig = document.getElementById('dateTriggerText');
+  trig.textContent = 'Pilih tanggal';
+  trig.style.color = 'var(--gray-400)';
+  document.getElementById('inputKategori').value = 'seminar';
+  document.getElementById('inputTipeHarga').value = 'free';
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function openModalEdit(id) {
+  const ev = myData.find(e => e.id === id);
+  if (!ev) return;
+  editId = id;
+  document.getElementById('modalTitle').textContent = 'Edit Event';
+  document.getElementById('btnSimpan').textContent = 'Simpan Perubahan';
+  document.getElementById('inputNama').value = ev.nama;
+  document.getElementById('inputKategori').value = ev.kategori;
+  document.getElementById('inputTanggal').value = ev.tanggal;
+  const triggerText = document.getElementById('dateTriggerText');
+  triggerText.textContent = ev.tanggal || 'Pilih tanggal';
+  triggerText.style.color = ev.tanggal ? 'var(--gray-800)' : 'var(--gray-400)';
+  document.getElementById('inputWaktu').value = ev.waktu;
+  document.getElementById('inputLokasi').value = ev.lokasi;
+  document.getElementById('inputVenue').value = ev.venue;
+  document.getElementById('inputDeskripsi').value = ev.deskripsi || '';
+  document.getElementById('inputPenyelenggara').value = ev.penyelenggara;
+  document.getElementById('inputHarga').value = ev.harga;
+  document.getElementById('inputTipeHarga').value = ev.tipeHarga;
+  document.getElementById('inputKapasitas').value = ev.kapasitas;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function simpanEvent() {
+  const body = {
+    nama: document.getElementById('inputNama').value.trim(),
+    kategori: document.getElementById('inputKategori').value,
+    tanggal: document.getElementById('inputTanggal').value.trim(),
+    waktu: document.getElementById('inputWaktu').value.trim(),
+    lokasi: document.getElementById('inputLokasi').value.trim(),
+    venue: document.getElementById('inputVenue').value.trim(),
+    deskripsi: document.getElementById('inputDeskripsi').value.trim(),
+    penyelenggara: document.getElementById('inputPenyelenggara').value.trim(),
+    harga: document.getElementById('inputHarga').value.trim(),
+    tipeHarga: document.getElementById('inputTipeHarga').value,
+    kapasitas: document.getElementById('inputKapasitas').value,
+    createdBy: idUser
+  };
+  if (!body.nama || !body.tanggal || !body.lokasi) { showToast('⚠️ Nama, tanggal, dan lokasi wajib diisi!', 'error'); return; }
+  const url = editId ? `/api/events/${editId}` : '/api/events';
+  const method = editId ? 'PUT' : 'POST';
+  fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+    .then(r => r.json())
+    .then(data => {
+      showToast((data.success ? '✅ ' : '⚠️ ') + data.message, data.success ? 'success' : 'error');
+      if (data.success) { closeModal(); loadEventPenyelenggara(); }
+    })
+    .catch(() => showToast('❌ Gagal konek ke server!', 'error'));
+}
+
+function hapusEvent(id) {
+  if (!confirm('Yakin mau hapus event ini? Semua data pendaftaran akan hilang.')) return;
+  fetch(`/api/events/${id}`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ createdBy: idUser })
+  })
+  .then(r => r.json())
+  .then(data => {
+    showToast((data.success ? '✅ ' : '⚠️ ') + data.message, data.success ? 'success' : 'error');
+    if (data.success) loadEventPenyelenggara();
+  })
+  .catch(() => showToast('❌ Gagal konek ke server!', 'error'));
+}
+
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('modal-overlay')) {
+    document.getElementById('modal-overlay').classList.remove('open');
+  }
+}
+
+/* ── Scroll Date Picker Logic ── */
+const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+let dpSel = { hari: 1, bulan: 0, tahun: new Date().getFullYear() };
+
+function buildDrum(innerId, items, selIdx) {
+  const inner = document.getElementById(innerId);
+  const pad = 2; // blank rows top & bottom so selected can center
+  let html = '';
+  for (let i = 0; i < pad; i++) html += '<div>&nbsp;</div>';
+  items.forEach((it, i) => html += `<div class="${i===selIdx?'sel':''}">${it}</div>`);
+  for (let i = 0; i < pad; i++) html += '<div>&nbsp;</div>';
+  inner.innerHTML = html;
+  inner.style.transform = `translateY(${-selIdx * 36}px)`;
+}
+
+function daysInMonth(m, y) { return new Date(y, m + 1, 0).getDate(); }
+
+function rebuildHari() {
+  const days = daysInMonth(dpSel.bulan, dpSel.tahun);
+  if (dpSel.hari > days) dpSel.hari = days;
+  const items = Array.from({length: days}, (_, i) => String(i + 1).padStart(2, '0'));
+  buildDrum('drumHariInner', items, dpSel.hari - 1);
+}
+
+function openDatePicker() {
+  const today = new Date();
+  const hidden = document.getElementById('inputTanggal').value;
+  if (hidden) {
+    // parse existing value e.g. "25 Mar 2026"
+    const parts = hidden.split(' ');
+    dpSel.hari = parseInt(parts[0]) || today.getDate();
+    dpSel.bulan = BULAN.findIndex(b => b.startsWith(parts[1]));
+    if (dpSel.bulan < 0) dpSel.bulan = today.getMonth();
+    dpSel.tahun = parseInt(parts[2]) || today.getFullYear();
+  } else {
+    dpSel.hari = today.getDate();
+    dpSel.bulan = today.getMonth();
+    dpSel.tahun = today.getFullYear();
+  }
+  rebuildHari();
+  buildDrum('drumBulanInner', BULAN, dpSel.bulan);
+  const years = Array.from({length: 10}, (_, i) => today.getFullYear() + i);
+  buildDrum('drumTahunInner', years.map(String), years.indexOf(dpSel.tahun) < 0 ? 0 : years.indexOf(dpSel.tahun));
+  document.getElementById('dp-overlay').classList.add('open');
+  ['Hari','Bulan','Tahun'].forEach(k => attachDrumScroll(k.toLowerCase()));
+}
+
+function closeDatePicker() {
+  document.getElementById('dp-overlay').classList.remove('open');
+}
+
+function dpOverlayClick(e) {
+  if (e.target === document.getElementById('dp-overlay')) closeDatePicker();
+}
+
+function confirmDate() {
+  const d = String(dpSel.hari).padStart(2, '0');
+  const b = BULAN[dpSel.bulan].slice(0, 3);
+  const y = dpSel.tahun;
+  const val = `${d} ${b} ${y}`;
+  document.getElementById('inputTanggal').value = val;
+  const trigger = document.getElementById('dateTriggerText');
+  trigger.textContent = val;
+  trigger.style.color = 'var(--gray-800)';
+  closeDatePicker();
+}
+
+function attachDrumScroll(drumKey) {
+  const drum = document.getElementById('drum' + drumKey.charAt(0).toUpperCase() + drumKey.slice(1));
+  const inner = drum.querySelector('.dp-drum-inner');
+  let startY, startTranslate, isDragging = false;
+
+  function getTranslate() {
+    const t = inner.style.transform;
+    return t ? parseFloat(t.replace('translateY(','').replace('px)','')) : 0;
+  }
+
+  function getMax() {
+    const items = inner.querySelectorAll('div:not(:empty)');
+    let count = 0;
+    items.forEach(d => { if (d.textContent.trim() && d.textContent.trim() !== '\u00a0') count++; });
+    return -(count - 1) * 36;
+  }
+
+  function snapToIndex(translate) {
+    const idx = Math.round(-translate / 36);
+    const items = inner.querySelectorAll('div');
+    let count = 0;
+    const pad = 2;
+    const realItems = [];
+    items.forEach(d => { if (d.textContent.trim() && d.textContent.trim() !== '\u00a0') realItems.push(d); });
+    const clamped = Math.max(0, Math.min(idx, realItems.length - 1));
+    inner.style.transition = 'transform .2s ease';
+    inner.style.transform = `translateY(${-clamped * 36}px)`;
+    realItems.forEach((d, i) => {
+      d.classList.toggle('sel', i === clamped);
+      d.style.fontSize = i === clamped ? '17px' : '';
+      d.style.fontWeight = i === clamped ? '700' : '';
+      d.style.color = i === clamped ? 'var(--gray-800)' : '';
+    });
+    // update dpSel
+    if (drumKey === 'hari') { dpSel.hari = clamped + 1; }
+    else if (drumKey === 'bulan') { dpSel.bulan = clamped; rebuildHari(); attachDrumScroll('hari'); }
+    else if (drumKey === 'tahun') {
+      const today = new Date();
+      dpSel.tahun = today.getFullYear() + clamped;
+      rebuildHari(); attachDrumScroll('hari');
+    }
+    setTimeout(() => { inner.style.transition = ''; }, 220);
+  }
+
+  drum.addEventListener('mousedown', e => { isDragging=true; startY=e.clientY; startTranslate=getTranslate(); inner.style.transition='none'; });
+  window.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    const dy = e.clientY - startY;
+    inner.style.transform = `translateY(${startTranslate + dy}px)`;
+  });
+  window.addEventListener('mouseup', e => {
+    if (!isDragging) return; isDragging=false;
+    snapToIndex(getTranslate());
+  });
+  drum.addEventListener('touchstart', e => { startY=e.touches[0].clientY; startTranslate=getTranslate(); inner.style.transition='none'; }, {passive:true});
+  drum.addEventListener('touchmove', e => {
+    const dy = e.touches[0].clientY - startY;
+    inner.style.transform = `translateY(${startTranslate + dy}px)`;
+  }, {passive:true});
+  drum.addEventListener('touchend', () => snapToIndex(getTranslate()));
+  drum.addEventListener('wheel', e => {
+    e.preventDefault();
+    const cur = getTranslate();
+    snapToIndex(cur - Math.sign(e.deltaY) * 36);
+  }, {passive:false});
+}
+
+function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+
+function showToast(msg, type = 'info') {
+  const wrap = document.getElementById('toast-wrap');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  wrap.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 3000);
+}
+</script>
+</body>
+</html>

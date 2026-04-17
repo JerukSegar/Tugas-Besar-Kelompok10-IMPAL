@@ -241,7 +241,7 @@
     </button>
 
     <p class="footer-text">
-      Belum punya akun? <a href="form.html">Daftar sekarang</a>
+      Belum punya akun?<a href="register.html">Daftar sekarang</a>
     </p>
   </div>
 
@@ -258,29 +258,48 @@
       }
     }
 
+    if (localStorage.getItem('token')) { window.location.href = 'dashboard.html'; }
+
     function handleLogin() {
-      const email = document.getElementById('email').value;
+      const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
-      if (!email || !password) {
-        alert('Email dan password wajib diisi!');
-        return;
-      }
-     
+      if (!email || !password) { showErr('Email dan password wajib diisi!'); return; }
+      const btn = document.querySelector('.btn-primary');
+      btn.textContent = 'Memproses...'; btn.disabled = true;
       fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       })
-      .then(res => res.json())
+      .then(r => r.json())
       .then(data => {
         if (data.success) {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('namaUser', data.nama);
+          localStorage.setItem('emailUser', data.email);
+          localStorage.setItem('roleUser', data.role);
+          localStorage.setItem('idUser', data.id);
+          localStorage.setItem('telpUser',     data.telp      || '');
+          localStorage.setItem('kotaUser',     data.kota      || '');
+          localStorage.setItem('institusiUser', data.institusi || '');
           window.location.href = 'dashboard.html';
         } else {
-          alert('Email atau password salah!');
+          showErr(data.message || 'Email atau password salah!');
+          btn.textContent = 'Masuk'; btn.disabled = false;
         }
       })
-      .catch(() => alert('Gagal konek ke server!'));
+      .catch(() => { showErr('Gagal konek ke server!'); btn.textContent = 'Masuk'; btn.disabled = false; });
     }
+
+    function showErr(msg) {
+      let el = document.getElementById('err');
+      if (!el) { el = document.createElement('div'); el.id = 'err';
+        el.style.cssText = 'background:#fee2e2;color:#b91c1c;padding:10px 14px;border-radius:8px;font-size:13.5px;margin-bottom:12px;';
+        document.querySelector('.form-title').after(el); }
+      el.textContent = msg;
+    }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
   </script>
 </body>
 </html>

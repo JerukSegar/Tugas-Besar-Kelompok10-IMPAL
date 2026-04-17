@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pembayaran — EventHub</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--primary:#1a56db;--primary-dark:#1341b3;--primary-light:#ebf1fd;--sidebar-bg:#0f2044;--sidebar-hover:rgba(255,255,255,0.07);--sidebar-active:rgba(255,255,255,0.14);--white:#ffffff;--gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;--gray-300:#cbd5e1;--gray-400:#94a3b8;--gray-500:#64748b;--gray-600:#475569;--gray-700:#334155;--gray-800:#1e293b;--success:#10b981;--success-light:#d1fae5;--danger:#ef4444;--danger-light:#fee2e2;--font:'Plus Jakarta Sans',sans-serif;--shadow-sm:0 1px 3px rgba(0,0,0,0.07);--shadow-md:0 4px 16px rgba(0,0,0,0.1);--radius-sm:6px;--radius:10px;--radius-lg:14px;--sidebar-w:220px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--gray-50);color:var(--gray-800);display:flex;min-height:100vh;font-size:14px;}
+button{cursor:pointer;font-family:var(--font);border:none;outline:none;}
+input,select{font-family:var(--font);outline:none;}
+.sidebar{width:var(--sidebar-w);min-height:100vh;background:var(--sidebar-bg);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;}
+.sidebar-brand{display:flex;align-items:center;gap:10px;padding:22px 18px 18px;border-bottom:1px solid rgba(255,255,255,0.07);}
+.brand-icon{width:36px;height:36px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.brand-icon svg{width:20px;height:20px;fill:white;}
+.brand-name{font-size:17px;font-weight:700;color:white;}
+.sidebar-nav{flex:1;padding:14px 10px;display:flex;flex-direction:column;gap:2px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);color:rgba(255,255,255,0.6);font-size:13.5px;font-weight:500;cursor:pointer;transition:all 0.18s;text-decoration:none;}
+.nav-item:hover{background:var(--sidebar-hover);color:rgba(255,255,255,0.9);}
+.nav-item.active{background:var(--sidebar-active);color:white;font-weight:600;}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:0.8;}
+.nav-item.active svg{opacity:1;}
+.sidebar-footer{padding:14px 10px;border-top:1px solid rgba(255,255,255,0.07);}
+.user-info{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;}
+.user-info:hover{background:var(--sidebar-hover);border-radius:var(--radius-sm);}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:white;flex-shrink:0;}
+.user-name{font-size:13px;font-weight:600;color:white;}
+.user-role{font-size:11px;color:rgba(255,255,255,0.4);}
+.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;background:var(--white);border-bottom:1px solid var(--gray-200);position:sticky;top:0;z-index:50;}
+.topbar h1{font-size:18px;font-weight:700;}
+.topbar p{font-size:13px;color:var(--gray-500);margin-top:1px;}
+.content{padding:28px;display:flex;gap:24px;align-items:flex-start;justify-content:center;}
+.pay-wrap{display:flex;gap:24px;width:100%;max-width:900px;}
+
+.order-card{width:320px;flex-shrink:0;background:var(--white);border-radius:var(--radius-lg);border:1px solid var(--gray-200);box-shadow:var(--shadow-sm);overflow:hidden;}
+.order-thumb{height:120px;display:flex;align-items:center;justify-content:center;}
+.order-thumb svg{width:48px;height:48px;opacity:0.25;}
+.order-body{padding:18px;}
+.order-title{font-size:16px;font-weight:700;color:var(--gray-800);margin-bottom:14px;}
+.order-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gray-100);}
+.order-row:last-child{border-bottom:none;}
+.order-label{font-size:12px;color:var(--gray-500);}
+.order-val{font-size:13px;font-weight:600;color:var(--gray-700);}
+.order-total{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:var(--primary-light);border-top:2px solid var(--primary-light);}
+.order-total-label{font-size:14px;font-weight:700;color:var(--primary-dark);}
+.order-total-val{font-size:20px;font-weight:800;color:var(--primary);}
+
+.payment-card{flex:1;background:var(--white);border-radius:var(--radius-lg);border:1px solid var(--gray-200);box-shadow:var(--shadow-sm);}
+.payment-header{padding:20px 24px;border-bottom:1px solid var(--gray-200);}
+.payment-title{font-size:16px;font-weight:700;}
+.payment-body{padding:24px;}
+.step-bar{display:flex;align-items:center;gap:0;margin-bottom:28px;}
+.step{display:flex;align-items:center;gap:8px;flex:1;}
+.step-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.step.done .step-num{background:var(--success);color:white;}
+.step.active .step-num{background:var(--primary);color:white;}
+.step.inactive .step-num{background:var(--gray-200);color:var(--gray-400);}
+.step-label{font-size:12px;font-weight:600;}
+.step.active .step-label{color:var(--primary);}
+.step.done .step-label{color:var(--success);}
+.step.inactive .step-label{color:var(--gray-400);}
+.step-line{flex:1;height:2px;background:var(--gray-200);margin:0 8px;}
+.step-line.done{background:var(--success);}
+.method-list{display:flex;flex-direction:column;gap:10px;margin-bottom:24px;}
+.method-item{display:flex;align-items:center;gap:14px;padding:14px 16px;border:2px solid var(--gray-200);border-radius:var(--radius);cursor:pointer;transition:all 0.15s;}
+.method-item:hover{border-color:var(--primary);}
+.method-item.selected{border-color:var(--primary);background:var(--primary-light);}
+.method-icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;}
+.method-info{flex:1;}
+.method-name{font-size:14px;font-weight:600;color:var(--gray-800);}
+.method-desc{font-size:12px;color:var(--gray-400);margin-top:2px;}
+.method-radio{width:18px;height:18px;accent-color:var(--primary);}
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:12px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;}
+.form-input{width:100%;padding:11px 14px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-size:14px;color:var(--gray-800);transition:border-color 0.2s;}
+.form-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(26,86,219,0.08);}
+.form-input::placeholder{color:var(--gray-300);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.btn-bayar{width:100%;padding:14px;background:var(--primary);color:white;border-radius:var(--radius-sm);font-size:15px;font-weight:700;cursor:pointer;transition:background 0.15s;margin-top:8px;}
+.btn-bayar:hover{background:var(--primary-dark);}
+.btn-bayar:disabled{opacity:0.6;cursor:not-allowed;}
+.btn-batal{width:100%;padding:12px;background:var(--gray-100);color:var(--gray-600);border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;margin-top:8px;}
+.btn-batal:hover{background:var(--gray-200);}
+.secure-note{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--gray-400);margin-top:12px;justify-content:center;}
+
+.confirm-panel{display:none;text-align:center;padding:32px 24px;}
+.confirm-panel.show{display:block;}
+.confirm-icon{width:80px;height:80px;border-radius:50%;background:var(--success-light);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;}
+.confirm-icon svg{width:40px;height:40px;}
+.confirm-title{font-size:20px;font-weight:800;color:var(--gray-800);margin-bottom:8px;}
+.confirm-msg{font-size:14px;color:var(--gray-500);margin-bottom:24px;line-height:1.6;}
+.confirm-kode{display:inline-block;background:var(--gray-100);border-radius:var(--radius-sm);padding:8px 20px;font-family:monospace;font-size:16px;font-weight:700;color:var(--gray-700);margin-bottom:24px;letter-spacing:0.05em;}
+.btn-lihat-tiket{padding:12px 32px;background:var(--primary);color:white;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;}
+.btn-lihat-tiket:hover{background:var(--primary-dark);}
+
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+.toast{padding:12px 18px;background:var(--gray-800);color:white;border-radius:var(--radius);font-size:13px;font-weight:500;box-shadow:var(--shadow-md);animation:slideIn 0.3s ease;}
+.toast.success{background:#065f46;}
+.toast.error{background:#991b1b;}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:none;}}
+.hidden{display:none!important;}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5C3.9 4 3 4.9 3 6v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM5 7V6h14v1H5zm2 4h10v2H7v-2zm0 4h7v2H7v-2z"/></svg></div>
+    <span class="brand-name">EventHub</span>
+  </div>
+  <nav class="sidebar-nav">
+    <a class="nav-item" href="dashboard.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>Dashboard</a>
+    <a class="nav-item active" href="semua_event.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>Semua Event</a>
+    <a class="nav-item" href="event_saya.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>Event Saya</a>
+    <a class="nav-item" href="tiket_saya.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 10V6c0-1.11-.9-2-2-2H4c-1.1 0-1.99.89-1.99 2v4c1.1 0 1.99.9 1.99 2s-.89 2-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2s.9-2 2-2z"/></svg>Tiket Saya</a>
+    <a class="nav-item" href="checkin_saya.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>Check-In</a>
+    <a class="nav-item" href="pengaturan.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>Pengaturan</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-info" ondblclick="logout()">
+      <div class="user-avatar" id="sidebarAvatar">A</div>
+      <div><div class="user-name" id="sidebarName">Pengguna</div><div class="user-role" id="sidebarRole">Peserta</div></div>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div><h1>Pembayaran</h1><p>Selesaikan pembayaran untuk mendaftar event</p></div>
+  </div>
+  <div class="content">
+    <div class="pay-wrap">
+      <div class="order-card">
+        <div class="order-thumb" id="orderThumb"></div>
+        <div class="order-body">
+          <div class="order-title" id="orderNama">Nama Event</div>
+          <div class="order-row"><span class="order-label">Tanggal</span><span class="order-val" id="orderTanggal">-</span></div>
+          <div class="order-row"><span class="order-label">Lokasi</span><span class="order-val" id="orderLokasi">-</span></div>
+          <div class="order-row"><span class="order-label">Penyelenggara</span><span class="order-val" id="orderPenyelenggara">-</span></div>
+          <div class="order-row"><span class="order-label">Peserta</span><span class="order-val" id="orderPeserta">-</span></div>
+        </div>
+        <div class="order-total">
+          <span class="order-total-label">Total Pembayaran</span>
+          <span class="order-total-val" id="orderTotal">-</span>
+        </div>
+      </div>
+      <div class="payment-card">
+        <div class="payment-header">
+          <div class="payment-title">Pilih Metode Pembayaran</div>
+        </div>
+        <div class="payment-body">
+          <div class="step-bar">
+            <div class="step active" id="step1">
+              <div class="step-num">1</div>
+              <div class="step-label">Metode</div>
+            </div>
+            <div class="step-line" id="line1"></div>
+            <div class="step inactive" id="step2">
+              <div class="step-num">2</div>
+              <div class="step-label">Detail</div>
+            </div>
+            <div class="step-line" id="line2"></div>
+            <div class="step inactive" id="step3">
+              <div class="step-num">3</div>
+              <div class="step-label">Konfirmasi</div>
+            </div>
+          </div>
+          <div id="panelMetode">
+            <div class="method-list">
+              <div class="method-item" onclick="pilihMetode('transfer', this)">
+                <div class="method-icon" style="background:#dbeafe;">🏦</div>
+                <div class="method-info">
+                  <div class="method-name">Transfer Bank</div>
+                  <div class="method-desc">BCA, BNI, BRI, Mandiri</div>
+                </div>
+                <input type="radio" name="metode" class="method-radio" value="transfer"/>
+              </div>
+              <div class="method-item" onclick="pilihMetode('ewallet', this)">
+                <div class="method-icon" style="background:#d1fae5;">💳</div>
+                <div class="method-info">
+                  <div class="method-name">E-Wallet</div>
+                  <div class="method-desc">GoPay, OVO, DANA, ShopeePay</div>
+                </div>
+                <input type="radio" name="metode" class="method-radio" value="ewallet"/>
+              </div>
+              <div class="method-item" onclick="pilihMetode('qris', this)">
+                <div class="method-icon" style="background:#ede9fe;">📱</div>
+                <div class="method-info">
+                  <div class="method-name">QRIS</div>
+                  <div class="method-desc">Scan QR dari aplikasi apapun</div>
+                </div>
+                <input type="radio" name="metode" class="method-radio" value="qris"/>
+              </div>
+              <div class="method-item" onclick="pilihMetode('tunai', this)">
+                <div class="method-icon" style="background:#fef3c7;">💵</div>
+                <div class="method-info">
+                  <div class="method-name">Bayar di Tempat</div>
+                  <div class="method-desc">Lunasi saat hari H event</div>
+                </div>
+                <input type="radio" name="metode" class="method-radio" value="tunai"/>
+              </div>
+            </div>
+            <button class="btn-bayar" id="btnLanjut" onclick="keStep2()" disabled>Lanjut →</button>
+          </div>
+          <div id="panelDetail" class="hidden">
+            <div id="formTransfer" class="hidden">
+              <div class="form-group">
+                <label class="form-label">Pilih Bank</label>
+                <select class="form-input" id="pilihBank">
+                  <option value="">-- Pilih Bank --</option>
+                  <option value="BCA">BCA — 1234567890 a.n EventHub</option>
+                  <option value="BNI">BNI — 0987654321 a.n EventHub</option>
+                  <option value="BRI">BRI — 1122334455 a.n EventHub</option>
+                  <option value="Mandiri">Mandiri — 5566778899 a.n EventHub</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Nama Pengirim</label>
+                <input type="text" class="form-input" id="namaPengirim" placeholder="Nama sesuai rekening"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Nomor Referensi Transfer</label>
+                <input type="text" class="form-input" id="noReferensi" placeholder="Contoh: TRF202604090001"/>
+              </div>
+            </div>
+            <div id="formEwallet" class="hidden">
+              <div class="form-group">
+                <label class="form-label">Pilih E-Wallet</label>
+                <select class="form-input" id="pilihEwallet">
+                  <option value="">-- Pilih E-Wallet --</option>
+                  <option value="GoPay">GoPay — 0812-3456-7890</option>
+                  <option value="OVO">OVO — 0812-3456-7890</option>
+                  <option value="DANA">DANA — 0812-3456-7890</option>
+                  <option value="ShopeePay">ShopeePay — 0812-3456-7890</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Nomor HP Pengirim</label>
+                <input type="text" class="form-input" id="noHpEwallet" placeholder="08xxxxxxxxxx"/>
+              </div>
+            </div>
+            <div id="formQris" class="hidden">
+              <div style="text-align:center;padding:20px;background:var(--gray-50);border-radius:var(--radius);border:2px dashed var(--gray-300);margin-bottom:16px;">
+                <div style="font-size:64px;margin-bottom:8px;">📱</div>
+                <div style="font-size:13px;font-weight:600;color:var(--gray-600);">Scan QR Code di bawah ini</div>
+                <div style="font-family:monospace;font-size:11px;color:var(--gray-400);margin-top:6px;">QRIS-EVENTHUB-<span id="qrisEventId"></span></div>
+                <div style="margin-top:12px;font-size:12px;color:var(--gray-500);">Bayar sebesar <strong id="qrisJumlah"></strong></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Kode Konfirmasi (dari notif pembayaran)</label>
+                <input type="text" class="form-input" id="kodeQris" placeholder="Contoh: QRIS-20260409-XXXX"/>
+              </div>
+            </div>
+            <div id="formTunai" class="hidden">
+              <div style="background:var(--warning-light);border:1px solid #f59e0b;border-radius:var(--radius);padding:16px;margin-bottom:16px;">
+                <div style="font-size:14px;font-weight:700;color:#92400e;margin-bottom:6px;">⚠️ Perhatian</div>
+                <div style="font-size:13px;color:#92400e;line-height:1.6;">Kamu akan didaftarkan sekarang, namun pembayaran dilakukan saat hari H event. Pastikan membawa uang tunai sebesar <strong id="tunaiJumlah"></strong> saat event berlangsung.</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Catatan (opsional)</label>
+                <input type="text" class="form-input" id="catatanTunai" placeholder="Catatan tambahan..."/>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:10px;margin-top:8px;">
+              <button class="btn-batal" onclick="keStep1()" style="flex:1;">← Kembali</button>
+              <button class="btn-bayar" onclick="prosesBayar()" style="flex:2;">Konfirmasi Pembayaran</button>
+            </div>
+          </div>
+          <div id="panelKonfirmasi" class="hidden confirm-panel">
+            <div class="confirm-icon">
+              <svg viewBox="0 0 24 24" fill="#10b981"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+            </div>
+            <div class="confirm-title">Pembayaran Berhasil! 🎉</div>
+            <div class="confirm-msg">Pendaftaran kamu telah dikonfirmasi.<br>Tiket digital sudah tersedia di halaman Tiket Saya.</div>
+            <div class="confirm-kode" id="confirmKode">-</div>
+            <br>
+            <button class="btn-lihat-tiket" onclick="window.location.href='tiket_saya.html'">Lihat Tiket Saya</button>
+            <br><br>
+            <button class="btn-batal" onclick="window.location.href='semua_event.html'">Kembali ke Event</button>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script>
+if (!localStorage.getItem('token')) { window.location.href = 'login.html'; }
+
+var namaUser = localStorage.getItem('namaUser') || 'Pengguna';
+var roleUser  = localStorage.getItem('roleUser') || 'peserta';
+var idUser    = localStorage.getItem('idUser');
+
+document.getElementById('sidebarName').textContent  = namaUser;
+document.getElementById('sidebarRole').textContent  = roleUser.charAt(0).toUpperCase() + roleUser.slice(1);
+document.getElementById('sidebarAvatar').textContent = namaUser.charAt(0).toUpperCase();
+
+var params   = new URLSearchParams(window.location.search);
+var eventId  = params.get('eventId');
+var eventData = null;
+var metodeTerpilih = null;
+
+var thumbColor = function(k) { return {seminar:'#dbeafe',workshop:'#d1fae5',konferensi:'#ede9fe',webinar:'#fef3c7',bootcamp:'#fee2e2'}[k] || '#f1f5f9'; };
+var thumbIcon  = function(k) { return {seminar:'#3b82f6',workshop:'#10b981',konferensi:'#8b5cf6',webinar:'#f59e0b',bootcamp:'#ef4444'}[k] || '#94a3b8'; };
+
+if (!eventId) { window.location.href = 'semua_event.html'; }
+
+fetch('/api/events/' + eventId)
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (!data.success) { window.location.href = 'semua_event.html'; return; }
+    eventData = data.event;
+    var color = thumbColor(eventData.kategori);
+    document.getElementById('orderThumb').style.background = color;
+    document.getElementById('orderThumb').innerHTML = '<svg viewBox="0 0 24 24" fill="' + thumbIcon(eventData.kategori) + '"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>';
+    document.getElementById('orderNama').textContent        = eventData.nama;
+    document.getElementById('orderTanggal').textContent     = eventData.tanggal + ' · ' + eventData.waktu;
+    document.getElementById('orderLokasi').textContent      = eventData.venue + ', ' + eventData.lokasi;
+    document.getElementById('orderPenyelenggara').textContent = eventData.penyelenggara;
+    document.getElementById('orderPeserta').textContent     = namaUser;
+    document.getElementById('orderTotal').textContent       = eventData.harga;
+    document.getElementById('qrisJumlah').textContent       = eventData.harga;
+    document.getElementById('tunaiJumlah').textContent      = eventData.harga;
+    document.getElementById('qrisEventId').textContent      = eventData.id;
+  })
+  .catch(function() { window.location.href = 'semua_event.html'; });
+
+function pilihMetode(metode, el) {
+  metodeTerpilih = metode;
+  document.querySelectorAll('.method-item').forEach(function(i) { i.classList.remove('selected'); });
+  el.classList.add('selected');
+  el.querySelector('input[type=radio]').checked = true;
+  document.getElementById('btnLanjut').disabled = false;
+}
+
+function keStep1() {
+  document.getElementById('panelDetail').classList.add('hidden');
+  document.getElementById('panelMetode').classList.remove('hidden');
+  setStep(1);
+}
+
+function keStep2() {
+  if (!metodeTerpilih) { showToast('⚠️ Pilih metode pembayaran dulu!', 'error'); return; }
+  document.getElementById('panelMetode').classList.add('hidden');
+  document.getElementById('panelDetail').classList.remove('hidden');
+  ['formTransfer','formEwallet','formQris','formTunai'].forEach(function(id) {
+    document.getElementById(id).classList.add('hidden');
+  });
+  if (metodeTerpilih === 'transfer') document.getElementById('formTransfer').classList.remove('hidden');
+  if (metodeTerpilih === 'ewallet')  document.getElementById('formEwallet').classList.remove('hidden');
+  if (metodeTerpilih === 'qris')     document.getElementById('formQris').classList.remove('hidden');
+  if (metodeTerpilih === 'tunai')    document.getElementById('formTunai').classList.remove('hidden');
+
+  setStep(2);
+}
+
+function prosesBayar() {
+  if (metodeTerpilih === 'transfer') {
+    if (!document.getElementById('pilihBank').value)    { showToast('⚠️ Pilih bank dulu!', 'error'); return; }
+    if (!document.getElementById('namaPengirim').value.trim()) { showToast('⚠️ Isi nama pengirim!', 'error'); return; }
+    if (!document.getElementById('noReferensi').value.trim())  { showToast('⚠️ Isi nomor referensi!', 'error'); return; }
+  }
+  if (metodeTerpilih === 'ewallet') {
+    if (!document.getElementById('pilihEwallet').value) { showToast('⚠️ Pilih e-wallet dulu!', 'error'); return; }
+    if (!document.getElementById('noHpEwallet').value.trim())  { showToast('⚠️ Isi nomor HP!', 'error'); return; }
+  }
+  if (metodeTerpilih === 'qris') {
+    if (!document.getElementById('kodeQris').value.trim()) { showToast('⚠️ Isi kode konfirmasi QRIS!', 'error'); return; }
+  }
+
+  var btn = document.querySelector('#panelDetail .btn-bayar');
+  btn.textContent = 'Memproses...';
+  btn.disabled = true;
+
+  fetch('/api/events/daftar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId: parseInt(idUser), eventId: parseInt(eventId) })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    btn.textContent = 'Konfirmasi Pembayaran';
+    btn.disabled = false;
+    if (data.success) {
+      document.getElementById('panelDetail').classList.add('hidden');
+      document.getElementById('panelKonfirmasi').classList.remove('hidden');
+      document.getElementById('panelKonfirmasi').classList.add('show');
+      document.getElementById('confirmKode').textContent = data.kodeTiket || '-';
+      setStep(3);
+    } else {
+      showToast('⚠️ ' + data.message, 'error');
+    }
+  })
+  .catch(function() {
+    btn.textContent = 'Konfirmasi Pembayaran';
+    btn.disabled = false;
+    showToast('❌ Gagal konek ke server!', 'error');
+  });
+}
+
+function setStep(n) {
+  ['step1','step2','step3'].forEach(function(id, i) {
+    var el = document.getElementById(id);
+    el.className = 'step ' + (i + 1 < n ? 'done' : i + 1 === n ? 'active' : 'inactive');
+  });
+  document.getElementById('line1').className = 'step-line' + (n > 1 ? ' done' : '');
+  document.getElementById('line2').className = 'step-line' + (n > 2 ? ' done' : '');
+}
+
+function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+
+function showToast(msg, type) {
+  type = type || 'info';
+  var wrap = document.getElementById('toast-wrap');
+  var t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  wrap.appendChild(t);
+  setTimeout(function() {
+    t.style.opacity = '0'; t.style.transition = 'opacity 0.3s';
+    setTimeout(function() { t.remove(); }, 300);
+  }, 3000);
+}
+</script>
+</body>
+</html>

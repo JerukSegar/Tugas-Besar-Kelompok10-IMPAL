@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sertifikat Saya — EventHub</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#1a56db;--primary-dark:#1341b3;--primary-light:#ebf1fd;
+  --sidebar-bg:#0f2044;--sidebar-hover:rgba(255,255,255,0.07);--sidebar-active:rgba(255,255,255,0.14);
+  --white:#ffffff;--gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;
+  --gray-300:#cbd5e1;--gray-400:#94a3b8;--gray-500:#64748b;--gray-600:#475569;
+  --gray-700:#334155;--gray-800:#1e293b;
+  --success:#10b981;--success-light:#d1fae5;
+  --danger:#ef4444;--warning:#f59e0b;
+  --font:'Plus Jakarta Sans',sans-serif;
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.07);--shadow-md:0 4px 16px rgba(0,0,0,0.1);
+  --radius-sm:6px;--radius:10px;--radius-lg:14px;--sidebar-w:220px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:var(--font);background:var(--gray-50);color:var(--gray-800);
+  display:flex;min-height:100vh;font-size:14px;
+}
+button{cursor:pointer;font-family:var(--font);border:none;outline:none;}
+
+/* ===== SIDEBAR ===== */
+.sidebar{
+  width:var(--sidebar-w);min-height:100vh;background:var(--sidebar-bg);
+  display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;
+}
+.sidebar-brand{
+  display:flex;align-items:center;gap:10px;padding:22px 18px 18px;
+  border-bottom:1px solid rgba(255,255,255,0.07);
+}
+.brand-icon{
+  width:36px;height:36px;background:var(--primary);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  box-shadow:0 4px 12px rgba(26,86,219,0.4);
+}
+.brand-icon svg{width:20px;height:20px;fill:white;}
+.brand-name{font-size:17px;font-weight:700;color:white;}
+.sidebar-nav{flex:1;padding:14px 10px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;
+  border-radius:var(--radius-sm);color:rgba(255,255,255,0.6);
+  font-size:13.5px;font-weight:500;cursor:pointer;transition:all 0.18s;text-decoration:none;
+}
+.nav-item:hover{background:var(--sidebar-hover);color:rgba(255,255,255,0.9);}
+.nav-item.active{background:var(--sidebar-active);color:white;font-weight:600;}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:0.8;}
+.nav-item.active svg{opacity:1;}
+.sidebar-footer{padding:14px 10px;border-top:1px solid rgba(255,255,255,0.07);}
+.user-info{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;
+  cursor:pointer;border-radius:var(--radius-sm);
+}
+.user-info:hover{background:var(--sidebar-hover);}
+.user-avatar{
+  width:32px;height:32px;border-radius:50%;background:var(--primary);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;color:white;flex-shrink:0;
+}
+.user-name{font-size:13px;font-weight:600;color:white;}
+.user-role{font-size:11px;color:rgba(255,255,255,0.4);}
+
+/* ===== MAIN ===== */
+.main{
+  margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;
+  min-width:0;
+}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 28px;background:var(--white);border-bottom:1px solid var(--gray-200);
+  position:sticky;top:0;z-index:50;
+}
+.topbar h1{font-size:18px;font-weight:700;}
+.topbar p{font-size:13px;color:var(--gray-500);margin-top:1px;}
+.content{padding:24px 28px;flex:1;}
+
+/* ===== GRID SERTIFIKAT ===== */
+.sert-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:20px;
+}
+@media(max-width:900px){.sert-grid{grid-template-columns:1fr;}}
+
+/* ===== CARD SERTIFIKAT ===== */
+.sert-card{
+  background:var(--white);border-radius:var(--radius-lg);
+  border:1px solid var(--gray-200);box-shadow:var(--shadow-sm);
+  overflow:hidden;transition:transform 0.2s,box-shadow 0.2s;
+}
+.sert-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
+.sert-header{
+  background:linear-gradient(135deg,#0f2044 0%,#1a56db 100%);
+  padding:28px 24px;text-align:center;position:relative;
+}
+.sert-logo{font-size:28px;margin-bottom:8px;}
+.sert-title{
+  font-size:11px;font-weight:600;color:rgba(255,255,255,0.7);
+  text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;
+}
+.sert-nama{font-size:20px;font-weight:800;color:white;margin-bottom:4px;line-height:1.3;}
+.sert-sub{font-size:12px;color:rgba(255,255,255,0.6);}
+.sert-badge{
+  position:absolute;top:12px;right:12px;
+  background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);
+  border-radius:20px;padding:4px 10px;font-size:10px;font-weight:600;color:white;
+}
+.sert-body{padding:16px 20px;}
+.sert-event{font-size:15px;font-weight:700;color:var(--gray-800);margin-bottom:10px;line-height:1.3;}
+.sert-info{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+.sert-info-row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--gray-500);}
+.sert-footer{
+  display:flex;align-items:center;justify-content:space-between;
+  padding-top:12px;border-top:1px solid var(--gray-100);
+}
+.sert-kode{font-family:monospace;font-size:11px;color:var(--gray-400);font-weight:600;}
+.btn-lihat{
+  padding:8px 16px;background:var(--primary-light);color:var(--primary-dark);
+  border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;
+  display:flex;align-items:center;gap:6px;transition:all 0.15s;border:none;
+}
+.btn-lihat:hover{background:var(--primary);color:white;}
+.btn-lihat svg{width:13px;height:13px;}
+
+/* ===== EMPTY STATE ===== */
+.empty-state{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--gray-400);}
+.empty-state svg{width:56px;height:56px;margin:0 auto 14px;display:block;opacity:0.25;}
+.empty-state h3{font-size:16px;font-weight:600;color:var(--gray-600);margin-bottom:6px;}
+.empty-state p{font-size:13px;color:var(--gray-400);}
+
+/* ===== MODAL OVERLAY ===== */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(4px);
+  z-index:300;
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+.modal-overlay.open{display:flex;animation:fadeIn 0.2s ease;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+
+/* ===== CERT PAPER ===== */
+.cert-paper{
+  background:white;width:100%;max-width:700px;border-radius:14px;
+  overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,0.35);
+  max-height:90vh;overflow-y:auto;
+}
+.cert-top{
+  background:linear-gradient(135deg,#0f2044 0%,#1a56db 100%);
+  padding:40px 48px 32px;text-align:center;
+}
+.cert-top-logo{font-size:40px;margin-bottom:10px;}
+.cert-top-org{
+  font-size:12px;font-weight:700;color:rgba(255,255,255,0.65);
+  text-transform:uppercase;letter-spacing:0.15em;margin-bottom:6px;
+}
+.cert-top-app{font-size:24px;font-weight:800;color:white;}
+.cert-main{padding:40px 48px 24px;text-align:center;}
+.cert-label{font-size:11px;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:10px;}
+.cert-recipient{font-size:34px;font-weight:800;color:var(--gray-800);margin-bottom:8px;line-height:1.2;}
+.cert-desc{font-size:14px;color:var(--gray-500);line-height:1.7;margin-bottom:20px;}
+.cert-event-name{font-size:22px;font-weight:700;color:var(--primary);margin-bottom:8px;}
+.cert-detail{font-size:13px;color:var(--gray-500);margin-bottom:8px;}
+.cert-penyelenggara-info{font-size:13px;color:var(--gray-500);margin-bottom:24px;}
+.cert-divider{height:2px;background:linear-gradient(90deg,transparent,var(--primary),transparent);margin:8px 0 24px;}
+.cert-footer-row{
+  display:flex;justify-content:space-between;align-items:flex-end;
+  padding:0 48px 36px;
+}
+.cert-footer-left{text-align:left;}
+.cert-footer-right{text-align:right;}
+.cert-footer-label{font-size:10px;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;}
+.cert-footer-val{font-size:13px;font-weight:600;color:var(--gray-700);}
+.cert-kode-val{font-family:monospace;font-size:12px;color:var(--gray-400);font-weight:600;}
+.cert-verified{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--success-light);color:#065f46;
+  border-radius:99px;padding:5px 14px;font-size:11px;font-weight:700;margin-top:16px;
+}
+
+/* ===== TOMBOL MODAL ===== */
+.cert-btn-wrap{
+  display:flex;gap:10px;justify-content:center;
+  padding:18px 48px 24px;border-top:1px solid var(--gray-100);background:var(--gray-50);
+}
+.btn-print{
+  padding:11px 28px;background:var(--primary);color:white;
+  border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;
+  display:flex;align-items:center;gap:8px;border:none;transition:background 0.15s;
+}
+.btn-print:hover{background:var(--primary-dark);}
+.btn-print svg{width:16px;height:16px;}
+.btn-close-modal{
+  padding:11px 20px;background:var(--gray-200);color:var(--gray-700);
+  border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;
+  border:none;transition:background 0.15s;
+}
+.btn-close-modal:hover{background:var(--gray-300);}
+
+/* ===== TOAST ===== */
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+.toast{
+  display:flex;align-items:center;gap:10px;padding:12px 18px;
+  background:var(--gray-800);color:white;border-radius:var(--radius);
+  font-size:13px;font-weight:500;box-shadow:var(--shadow-md);animation:slideIn 0.3s ease;
+}
+.toast.success{background:#065f46;}
+.toast.error{background:#991b1b;}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:none;}}
+.hidden{display:none!important;}
+</style>
+</head>
+<body>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">
+      <svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5C3.9 4 3 4.9 3 6v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM5 7V6h14v1H5zm2 4h10v2H7v-2zm0 4h7v2H7v-2z"/></svg>
+    </div>
+    <span class="brand-name">EventHub</span>
+  </div>
+  <nav class="sidebar-nav">
+    <a class="nav-item" href="dashboard.html">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>Dashboard
+    </a>
+    <a class="nav-item" href="semua_event.html">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>Semua Event
+    </a>
+    <a class="nav-item" href="event_saya.html" id="navEventSaya">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>Event Saya
+    </a>
+    <a class="nav-item" href="tiket_saya.html" id="navTiket">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 10V6c0-1.11-.9-2-2-2H4c-1.1 0-1.99.89-1.99 2v4c1.1 0 1.99.9 1.99 2s-.89 2-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2s.9-2 2-2z"/></svg>Tiket Saya
+    </a>
+    <a class="nav-item" href="Checkin_saya.html" id="navCheckin">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>Check-In
+    </a>
+    <a class="nav-item active" href="sertifikat_saya.html" id="navSertifikat">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 008 20c3 0 7-3.5 6-8 0 0 2 4 0 8 1.28.56 2.82 1 5 1 .5-3.5-1-7.9-2-10z"/></svg>Sertifikat
+    </a>
+    <a class="nav-item hidden" href="laporan.html" id="navLaporan">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>Laporan
+    </a>
+    <a class="nav-item hidden" href="broadcast.html" id="navBroadcast">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 11v2h4v-2h-4zm-2 6.61c.96.71 2.21 1.65 3.2 2.39.4-.53.8-1.07 1.2-1.6-.99-.74-2.24-1.68-3.2-2.4-.4.54-.8 1.08-1.2 1.61zM20.4 5.6c-.4-.53-.8-1.07-1.2-1.6-.99.74-2.24 1.68-3.2 2.4.4.53.8 1.07 1.2 1.6.96-.72 2.21-1.65 3.2-2.4zM4 9c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h1v4h2v-4h1l5 3V6L8 9H4zm11.5 3c0-1.33-.58-2.53-1.5-3.35v6.69c.92-.81 1.5-2.01 1.5-3.34z"/></svg>Broadcast
+    </a>
+    <a class="nav-item" href="pengaturan.html">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>Pengaturan
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-info" ondblclick="logout()">
+      <div class="user-avatar" id="sidebarAvatar">A</div>
+      <div>
+        <div class="user-name" id="sidebarName">Pengguna</div>
+        <div class="user-role" id="sidebarRole">Peserta</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ===== MAIN ===== -->
+<main class="main">
+  <div class="topbar">
+    <div>
+      <h1>🏆 Sertifikat Saya</h1>
+      <p>Sertifikat kehadiran event yang kamu ikuti</p>
+    </div>
+  </div>
+  <div class="content">
+    <div class="sert-grid" id="sertGrid">
+      <div class="empty-state"><h3>Memuat sertifikat...</h3></div>
+    </div>
+  </div>
+</main>
+
+<!-- ===== MODAL LIHAT SERTIFIKAT ===== -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)tutupModal()">
+  <div class="cert-paper" id="certPaper">
+    <div class="cert-top">
+      <div class="cert-top-logo">🏆</div>
+      <div class="cert-top-org">EventHub</div>
+      <div class="cert-top-app">Sertifikat Kehadiran</div>
+    </div>
+    <div class="cert-main">
+      <div class="cert-label">Diberikan kepada</div>
+      <div class="cert-recipient" id="certNama">-</div>
+      <div class="cert-desc">telah menghadiri dan berpartisipasi penuh dalam kegiatan</div>
+      <div class="cert-event-name" id="certEvent">-</div>
+      <div class="cert-detail" id="certDetail">-</div>
+      <div class="cert-penyelenggara-info" id="certPenyelenggaraInfo">-</div>
+      <div class="cert-divider"></div>
+      <div class="cert-verified">✅ Terverifikasi oleh EventHub</div>
+    </div>
+    <div class="cert-footer-row">
+      <div class="cert-footer-left">
+        <div class="cert-footer-label">Penyelenggara</div>
+        <div class="cert-footer-val" id="certPenyelenggara">-</div>
+      </div>
+      <div class="cert-footer-right">
+        <div class="cert-footer-label">Kode Sertifikat</div>
+        <div class="cert-kode-val" id="certKode">-</div>
+      </div>
+    </div>
+    <div class="cert-btn-wrap">
+      <button class="btn-print" onclick="cetakSertifikat()">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
+        Cetak / Unduh PDF
+      </button>
+      <button class="btn-close-modal" onclick="tutupModal()">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script>
+// ===== AUTH CHECK =====
+if (!localStorage.getItem('token')) { window.location.href = 'login.html'; }
+
+var namaUser = localStorage.getItem('namaUser') || 'Pengguna';
+var roleUser  = localStorage.getItem('roleUser') || 'peserta';
+var idUser    = localStorage.getItem('idUser');
+
+// ===== ROLE-BASED SIDEBAR =====
+if (roleUser === 'penyelenggara') {
+  window.location.href = 'laporan.html';
+} else {
+  document.getElementById('navLaporan').classList.add('hidden');
+  document.getElementById('navBroadcast').classList.add('hidden');
+}
+
+document.getElementById('sidebarName').textContent   = namaUser;
+document.getElementById('sidebarRole').textContent   = roleUser.charAt(0).toUpperCase() + roleUser.slice(1);
+document.getElementById('sidebarAvatar').textContent = namaUser.charAt(0).toUpperCase();
+
+// ===== LOAD SERTIFIKAT =====
+function loadSertifikat() {
+  fetch('/api/sertifikat/user/' + idUser)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var grid = document.getElementById('sertGrid');
+      if (!data || !data.length) {
+        grid.innerHTML =
+          '<div class="empty-state">' +
+            '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 008 20c3 0 7-3.5 6-8 0 0 2 4 0 8 1.28.56 2.82 1 5 1 .5-3.5-1-7.9-2-10z"/></svg>' +
+            '<h3>Belum ada sertifikat</h3>' +
+            '<p>Sertifikat akan muncul setelah kamu check-in di event yang kamu ikuti</p>' +
+          '</div>';
+        return;
+      }
+      grid.innerHTML = data.map(function(s) {
+        var tglDiterbitkan = s.diterbitkanAt ? s.diterbitkanAt.substring(0,10) : '-';
+        var dataStr = JSON.stringify(s).replace(/"/g, '&quot;');
+        return (
+          '<div class="sert-card">' +
+            '<div class="sert-header">' +
+              '<div class="sert-badge">&#x2705; Verified</div>' +
+              '<div class="sert-logo">&#x1F3C6;</div>' +
+              '<div class="sert-title">Sertifikat Kehadiran</div>' +
+              '<div class="sert-nama">' + esc(s.namaPeserta) + '</div>' +
+              '<div class="sert-sub">EventHub &middot; ' + tglDiterbitkan + '</div>' +
+            '</div>' +
+            '<div class="sert-body">' +
+              '<div class="sert-event">' + esc(s.namaEvent) + '</div>' +
+              '<div class="sert-info">' +
+                '<div class="sert-info-row">&#x1F4C5; ' + esc(s.tanggalEvent) + '</div>' +
+                '<div class="sert-info-row">&#x1F3E2; ' + esc(s.penyelenggara) + '</div>' +
+              '</div>' +
+              '<div class="sert-footer">' +
+                '<div class="sert-kode">' + esc(s.kodeSertifikat) + '</div>' +
+                '<button class="btn-lihat" onclick=\'lihatSertifikat(' + dataStr + ')\'>' +
+                  '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>' +
+                  'Lihat &amp; Cetak' +
+                '</button>' +
+              '</div>' +
+            '</div>' +
+          '</div>'
+        );
+      }).join('');
+    })
+    .catch(function() {
+      document.getElementById('sertGrid').innerHTML =
+        '<div class="empty-state"><h3>Gagal memuat sertifikat</h3><p>Periksa koneksi atau coba lagi nanti</p></div>';
+    });
+}
+
+// ===== TAMPILKAN MODAL =====
+function lihatSertifikat(s) {
+  document.getElementById('certNama').textContent              = s.namaPeserta;
+  document.getElementById('certEvent').textContent             = s.namaEvent;
+  document.getElementById('certDetail').textContent            = '\uD83D\uDCC5 ' + s.tanggalEvent;
+  document.getElementById('certPenyelenggaraInfo').textContent = '\uD83C\uDFE2 Diselenggarakan oleh ' + s.penyelenggara;
+  document.getElementById('certPenyelenggara').textContent     = s.penyelenggara;
+  document.getElementById('certKode').textContent              = s.kodeSertifikat;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function tutupModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Tutup modal dengan tombol Escape
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') tutupModal();
+});
+
+// ===== CETAK / UNDUH PDF =====
+function cetakSertifikat() {
+  var nama       = document.getElementById('certNama').textContent;
+  var event      = document.getElementById('certEvent').textContent;
+  var detail     = document.getElementById('certDetail').textContent;
+  var penyelengg = document.getElementById('certPenyelenggara').textContent;
+  var kode       = document.getElementById('certKode').textContent;
+
+  var win = window.open('', '_blank');
+  win.document.write(
+    '<!DOCTYPE html><html lang="id"><head>' +
+    '<meta charset="UTF-8">' +
+    '<title>Sertifikat - ' + nama + '</title>' +
+    '<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">' +
+    '<style>' +
+    '*{box-sizing:border-box;margin:0;padding:0;}' +
+    'body{font-family:"Plus Jakarta Sans",sans-serif;background:white;display:flex;align-items:center;justify-content:center;min-height:100vh;}' +
+    '.cert-paper{width:794px;min-height:562px;background:white;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;}' +
+    '.cert-top{background:linear-gradient(135deg,#0f2044 0%,#1a56db 100%);padding:40px 60px 32px;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact;}' +
+    '.cert-top-logo{font-size:44px;margin-bottom:10px;}' +
+    '.cert-top-org{font-size:12px;font-weight:700;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:0.15em;margin-bottom:6px;}' +
+    '.cert-top-app{font-size:26px;font-weight:800;color:white;}' +
+    '.cert-main{padding:44px 60px 20px;text-align:center;}' +
+    '.cert-label{font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:12px;}' +
+    '.cert-recipient{font-size:38px;font-weight:800;color:#1e293b;margin-bottom:10px;line-height:1.2;}' +
+    '.cert-desc{font-size:14px;color:#64748b;line-height:1.7;margin-bottom:20px;}' +
+    '.cert-event-name{font-size:24px;font-weight:700;color:#1a56db;margin-bottom:8px;}' +
+    '.cert-detail{font-size:13px;color:#64748b;margin-bottom:6px;}' +
+    '.cert-pen{font-size:13px;color:#64748b;margin-bottom:20px;}' +
+    '.cert-divider{height:2px;background:linear-gradient(90deg,transparent,#1a56db,transparent);margin:8px 0 24px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}' +
+    '.cert-verified{display:inline-block;background:#d1fae5;color:#065f46;border-radius:99px;padding:6px 18px;font-size:12px;font-weight:700;margin-bottom:20px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}' +
+    '.cert-footer-row{display:flex;justify-content:space-between;align-items:flex-end;padding:0 60px 40px;}' +
+    '.cert-footer-label{font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:5px;}' +
+    '.cert-footer-val{font-size:14px;font-weight:600;color:#334155;}' +
+    '.cert-kode-val{font-family:monospace;font-size:12px;color:#94a3b8;font-weight:600;}' +
+    '@media print{@page{size:A4 landscape;margin:0;}body{margin:0;min-height:unset;}.cert-paper{width:100%;border:none;border-radius:0;}}' +
+    '</style></head><body>' +
+    '<div class="cert-paper">' +
+      '<div class="cert-top">' +
+        '<div class="cert-top-logo">\uD83C\uDFC6</div>' +
+        '<div class="cert-top-org">EventHub</div>' +
+        '<div class="cert-top-app">Sertifikat Kehadiran</div>' +
+      '</div>' +
+      '<div class="cert-main">' +
+        '<div class="cert-label">Diberikan kepada</div>' +
+        '<div class="cert-recipient">' + esc2(nama) + '</div>' +
+        '<div class="cert-desc">telah menghadiri dan berpartisipasi penuh dalam kegiatan</div>' +
+        '<div class="cert-event-name">' + esc2(event) + '</div>' +
+        '<div class="cert-detail">' + esc2(detail) + '</div>' +
+        '<div class="cert-pen">\uD83C\uDFE2 Diselenggarakan oleh ' + esc2(penyelengg) + '</div>' +
+        '<div class="cert-divider"></div>' +
+        '<div class="cert-verified">\u2705 Terverifikasi oleh EventHub</div>' +
+      '</div>' +
+      '<div class="cert-footer-row">' +
+        '<div>' +
+          '<div class="cert-footer-label">Penyelenggara</div>' +
+          '<div class="cert-footer-val">' + esc2(penyelengg) + '</div>' +
+        '</div>' +
+        '<div style="text-align:right;">' +
+          '<div class="cert-footer-label">Kode Sertifikat</div>' +
+          '<div class="cert-kode-val">' + esc2(kode) + '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    '<scr' + 'ipt>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/scr' + 'ipt>' +
+    '</body></html>'
+  );
+  win.document.close();
+}
+
+// ===== HELPER =====
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+function esc2(s) {
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;');
+}
+
+function logout() {
+  if (confirm('Keluar dari EventHub?')) {
+    localStorage.clear();
+    window.location.href = 'login.html';
+  }
+}
+
+function showToast(msg, type) {
+  type = type || 'info';
+  var wrap = document.getElementById('toast-wrap');
+  var t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  wrap.appendChild(t);
+  setTimeout(function() {
+    t.style.opacity = '0';
+    t.style.transition = 'opacity 0.3s';
+    setTimeout(function() { t.remove(); }, 300);
+  }, 3000);
+}
+
+// ===== INIT =====
+loadSertifikat();
+</script>
+</body>
+</html>
