@@ -46,6 +46,7 @@ button{cursor:pointer;font-family:var(--font);border:none;outline:none;}
 .status-hadir{background:var(--success-light);color:#065f46;}
 .status-belum{background:var(--danger-light);color:#991b1b;}
 .status-aktif{background:var(--primary-light);color:var(--primary-dark);}
+.status-belum-waktu{background:#fef3c7;color:#92400e;}
 .checkin-footer{padding:14px 18px;background:var(--gray-50);display:flex;align-items:center;justify-content:space-between;}
 .kode-wrap{display:flex;flex-direction:column;gap:2px;}
 .kode-label{font-size:10px;color:var(--gray-400);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;}
@@ -54,6 +55,9 @@ button{cursor:pointer;font-family:var(--font);border:none;outline:none;}
 .btn-checkin:hover{background:var(--primary-dark);}
 .btn-checkin:disabled{background:var(--gray-300);cursor:not-allowed;}
 .btn-sudah{padding:8px 18px;background:var(--success-light);color:#065f46;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:default;}
+.btn-belum-waktu{padding:8px 18px;background:var(--gray-100);color:var(--gray-400);border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:not-allowed;border:1.5px solid var(--gray-200);}
+.countdown-wrap{margin-top:6px;font-size:11px;color:var(--gray-400);display:flex;align-items:center;gap:4px;}
+.countdown-wrap strong{color:var(--warning);font-weight:700;}
 .empty-state{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--gray-400);}
 .empty-state svg{width:48px;height:48px;margin-bottom:14px;opacity:0.3;}
 .empty-state h3{font-size:16px;font-weight:600;color:var(--gray-600);margin-bottom:6px;}
@@ -162,8 +166,53 @@ function barColor(k) {
   return {seminar:'#3b82f6',workshop:'#10b981',konferensi:'#8b5cf6',webinar:'#f59e0b',bootcamp:'#ef4444'}[k] || '#94a3b8';
 }
 
+// ===== PARSE WAKTU MULAI EVENT =====
+// Format tanggal: "18 Apr 2026" atau "2026-04-18"
+// Format waktu:   "08.00-17.00 WIB" atau "08.07–09.00 WIB"
+function parseEventStart(tanggal, waktu) {
+  try {
+    var tgl = (tanggal || '').trim();
+    var dateObj;
+    var bulanMap = {
+      jan:0,feb:1,mar:2,apr:3,mei:4,jun:5,
+      jul:6,agu:7,sep:8,okt:9,nov:10,des:11,
+      may:4,aug:7,oct:9,dec:11
+    };
+    var m1 = tgl.match(/^(\d{1,2})\s+([a-zA-Z]+)\s+(\d{4})$/);
+    if (m1) {
+      var bln = bulanMap[m1[2].toLowerCase().slice(0,3)];
+      dateObj = new Date(parseInt(m1[3]), bln !== undefined ? bln : 0, parseInt(m1[1]));
+    } else {
+      dateObj = new Date(tgl);
+    }
+    if (!dateObj || isNaN(dateObj.getTime())) return null;
+
+    if (waktu) {
+      // Hapus " WIB" dst, ambil bagian waktu mulai (sebelum strip/dash)
+      var wStr = waktu.trim().replace(/\s*WIB.*/i, '');
+      var jamMenitStr = wStr.split(/[-\u2013]/)[0].trim();
+      var parts = jamMenitStr.split(/[.:]/);
+      dateObj.setHours(parseInt(parts[0]) || 0, parseInt(parts[1]) || 0, 0, 0);
+    }
+    return dateObj;
+  } catch(e) {
+    return null;
+  }
+}
+
+function formatCountdown(ms) {
+  if (ms <= 0) return '';
+  var totalSec = Math.floor(ms / 1000);
+  var d = Math.floor(totalSec / 86400);
+  var h = Math.floor((totalSec % 86400) / 3600);
+  var m = Math.floor((totalSec % 3600) / 60);
+  if (d > 0) return d + ' hari ' + h + ' jam lagi';
+  if (h > 0) return h + ' jam ' + m + ' menit lagi';
+  return m + ' menit lagi';
+}
+
+// ===== LOAD DATA =====
 function loadCheckin() {
-  // Ambil semua tiket peserta via pendaftaran
   fetch('/api/events/saya/' + idUser)
     .then(function(r) { return r.json(); })
     .then(function(pendaftaranList) {
@@ -175,7 +224,6 @@ function loadCheckin() {
         return;
       }
 
-      // Untuk setiap pendaftaran, ambil tiketnya
       var promises = pendaftaranList.map(function(p) {
         return fetch('/api/tiket/pendaftaran/' + p.pendaftaranId)
           .then(function(r) { return r.json(); })
@@ -197,6 +245,7 @@ function loadCheckin() {
     });
 }
 
+// ===== RENDER CARDS =====
 function renderCards(results) {
   var grid = document.getElementById('checkinGrid');
   if (!results.length) {
@@ -204,24 +253,49 @@ function renderCards(results) {
     return;
   }
 
+  var now = new Date();
+
   grid.innerHTML = results.map(function(item) {
-    var p = item.pendaftaran;
+    var p      = item.pendaftaran;
     var tikets = item.tikets;
-    var tiket = tikets.length > 0 ? tikets[0] : null;
+    var tiket  = tikets.length > 0 ? tikets[0] : null;
     var sudahHadir = tiket && tiket.statusTiket === 'digunakan';
-    var color = barColor(p.kategori);
+    var color  = barColor(p.kategori);
 
-    var statusHtml = sudahHadir
-      ? '<span class="status-badge status-hadir">✅ Sudah Hadir</span>'
-      : tiket
-        ? '<span class="status-badge status-aktif">Belum Check-In</span>'
-        : '<span class="status-badge status-belum">Tiket tidak ada</span>';
+    // --- Cek waktu ---
+    var eventStart    = parseEventStart(p.tanggal, p.waktu);
+    var sudahWaktunya = !eventStart || now >= eventStart;
+    var selisihMs     = eventStart ? (eventStart - now) : 0;
+    var countdown     = (!sudahWaktunya && selisihMs > 0) ? formatCountdown(selisihMs) : '';
 
-    var btnHtml = sudahHadir
-      ? '<button class="btn-sudah" disabled>✅ Sudah Hadir</button>'
-      : tiket
-        ? '<button class="btn-checkin" onclick="doCheckin(\'' + tiket.kodeQr + '\')">Check-In Sekarang</button>'
-        : '<button class="btn-checkin" disabled>Tidak ada tiket</button>';
+    // --- Status badge ---
+    var statusHtml;
+    if (sudahHadir) {
+      statusHtml = '<span class="status-badge status-hadir">&#x2705; Sudah Hadir</span>';
+    } else if (!tiket) {
+      statusHtml = '<span class="status-badge status-belum">Tiket tidak ada</span>';
+    } else if (!sudahWaktunya) {
+      statusHtml = '<span class="status-badge status-belum-waktu">&#x23F3; Belum Waktunya</span>';
+    } else {
+      statusHtml = '<span class="status-badge status-aktif">Belum Check-In</span>';
+    }
+
+    // --- Info countdown ---
+    var countdownHtml = countdown
+      ? '<div class="countdown-wrap">&#128336; Dibuka dalam <strong>' + countdown + '</strong></div>'
+      : '';
+
+    // --- Tombol aksi ---
+    var btnHtml;
+    if (sudahHadir) {
+      btnHtml = '<button class="btn-sudah" disabled>&#x2705; Sudah Hadir</button>';
+    } else if (!tiket) {
+      btnHtml = '<button class="btn-checkin" disabled>Tidak ada tiket</button>';
+    } else if (!sudahWaktunya) {
+      btnHtml = '<button class="btn-belum-waktu" disabled title="Check-In akan dibuka saat event dimulai">&#128274; Belum Dibuka</button>';
+    } else {
+      btnHtml = '<button class="btn-checkin" onclick="doCheckin(\'' + tiket.kodeQr + '\')">Check-In Sekarang</button>';
+    }
 
     var kodeQr = tiket ? tiket.kodeQr : p.kodeTiket;
 
@@ -231,9 +305,10 @@ function renderCards(results) {
         '<div class="checkin-info">' +
           '<div class="checkin-event-name">' + (p.nama || '-') + '</div>' +
           '<div class="checkin-meta">' +
-            '<span>📅 ' + (p.tanggal || '-') + ' · ' + (p.waktu || '') + '</span>' +
-            '<span>📍 ' + (p.venue || '') + ', ' + (p.lokasi || '-') + '</span>' +
+            '<span>&#128197; ' + (p.tanggal || '-') + ' &middot; ' + (p.waktu || '') + '</span>' +
+            '<span>&#128205; ' + (p.venue || '') + ', ' + (p.lokasi || '-') + '</span>' +
           '</div>' +
+          countdownHtml +
         '</div>' +
         '<div class="checkin-status">' + statusHtml + '</div>' +
       '</div>' +
@@ -246,8 +321,13 @@ function renderCards(results) {
       '</div>' +
     '</div>';
   }).join('');
+
+  // Auto-refresh tiap 30 detik agar countdown & status update otomatis
+  if (window._checkinTimer) clearTimeout(window._checkinTimer);
+  window._checkinTimer = setTimeout(function() { loadCheckin(); }, 30000);
 }
 
+// ===== CHECK-IN =====
 function doCheckin(kodeQr) {
   fetch('/api/tiket/checkin', {
     method: 'POST',

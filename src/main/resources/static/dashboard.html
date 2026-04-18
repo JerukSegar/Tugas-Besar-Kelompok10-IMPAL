@@ -427,7 +427,7 @@ function loadAllEvents() {
             <div class="event-meta">📅 ${ev.tanggal} · 📍 ${ev.lokasi}</div>
             <div class="capacity-bar"><div class="capacity-fill ${fillClass}" style="width:${pct}%"></div></div>
             <div class="event-footer">${priceHtml}
-              <button class="btn-daftar" ${isFull ? 'disabled' : ''} onclick="daftar(${ev.id}, '${ev.tipeHarga}')">${isFull ? 'Penuh' : 'Daftar'}</button>
+              ${roleUser !== 'penyelenggara' ? `<button class="btn-daftar" ${isFull ? 'disabled' : ''} onclick="daftar(${ev.id}, '${ev.tipeHarga}')">${isFull ? 'Penuh' : 'Daftar'}</button>` : ''}
             </div>
           </div>
         </div>`;
@@ -440,6 +440,7 @@ function loadAllEvents() {
 
 function daftar(eventId, tipeHarga) {
   if (!idUser) { showToast('Silakan login dulu!', 'error'); return; }
+  if (roleUser === 'penyelenggara') { showToast('⚠️ Penyelenggara tidak bisa mendaftar event!', 'error'); return; }
   if (tipeHarga === 'paid') {
     window.location.href = 'form_pendaftaran.html?eventId=' + eventId;
     return;

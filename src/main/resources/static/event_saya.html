@@ -110,6 +110,15 @@ td.td-code{font-family:monospace;font-size:12px;color:var(--gray-400);font-weigh
 .btn-outline{padding:10px 18px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-size:13px;font-weight:600;color:var(--gray-600);background:white;}
 .hidden{display:none!important;}
 
+/* ── Harga Input ── */
+.harga-wrap{position:relative;}
+.harga-prefix{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;font-weight:600;color:var(--gray-600);pointer-events:none;}
+.harga-input-rp{padding-left:42px!important;}
+.harga-preview{margin-top:6px;font-size:12px;color:var(--gray-500);min-height:16px;}
+.harga-preview.valid{color:var(--success);font-weight:600;}
+.harga-preview.warn{color:var(--warning);font-weight:600;}
+.gratis-badge{display:inline-flex;align-items:center;gap:6px;padding:10px 14px;background:var(--success-light);border:1.5px solid #6ee7b7;border-radius:var(--radius-sm);font-size:14px;font-weight:600;color:#065f46;width:100%;}
+
 /* ── Scroll Date Picker ── */
 .dp-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:500;display:none;align-items:flex-end;justify-content:center;}
 .dp-overlay.open{display:flex;}
@@ -130,8 +139,39 @@ td.td-code{font-family:monospace;font-size:12px;color:var(--gray-400);font-weigh
 .dp-drum::before{top:0;background:linear-gradient(to bottom,rgba(255,255,255,.95),rgba(255,255,255,0));}
 .dp-drum::after{bottom:0;background:linear-gradient(to top,rgba(255,255,255,.95),rgba(255,255,255,0));}
 .dp-selector{position:absolute;top:50%;transform:translateY(-50%);left:4px;right:4px;height:36px;border-top:2px solid var(--primary);border-bottom:2px solid var(--primary);border-radius:6px;pointer-events:none;z-index:1;}
+
+/* ── Time Picker ── */
+.tp-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:500;display:none;align-items:flex-end;justify-content:center;}
+.tp-overlay.open{display:flex;}
+.tp-sheet{background:#fff;width:100%;max-width:520px;border-radius:20px 20px 0 0;padding-bottom:env(safe-area-inset-bottom,0px);box-shadow:0 -8px 30px rgba(0,0,0,0.15);}
+.tp-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 10px;border-bottom:1px solid var(--gray-100);}
+.tp-header span{font-size:15px;font-weight:700;color:var(--gray-800);}
+.tp-btn-ok{padding:8px 20px;background:var(--primary);color:#fff;border-radius:8px;font-size:13px;font-weight:600;border:none;cursor:pointer;}
+.tp-btn-cancel{padding:8px 14px;background:none;color:var(--gray-500);font-size:13px;font-weight:600;border:none;cursor:pointer;}
+.tp-body{display:flex;align-items:center;justify-content:center;gap:0;padding:12px 20px 20px;}
+.tp-drums{display:flex;align-items:center;gap:8px;}
+.tp-drum-wrap{display:flex;flex-direction:column;align-items:center;}
+.tp-drum-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-400);margin-bottom:8px;}
+.tp-drum{height:180px;overflow:hidden;position:relative;cursor:grab;width:70px;}
+.tp-drum:active{cursor:grabbing;}
+.tp-drum-inner{display:flex;flex-direction:column;transition:transform .15s ease;}
+.tp-drum-inner div{height:36px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;color:var(--gray-400);transition:color .1s,font-size .1s,font-weight .1s;}
+.tp-drum-inner div.sel{color:var(--gray-800);font-size:17px;font-weight:700;}
+.tp-drum::before,.tp-drum::after{content:'';position:absolute;left:0;right:0;height:60px;z-index:2;pointer-events:none;}
+.tp-drum::before{top:0;background:linear-gradient(to bottom,rgba(255,255,255,.95),rgba(255,255,255,0));}
+.tp-drum::after{bottom:0;background:linear-gradient(to top,rgba(255,255,255,.95),rgba(255,255,255,0));}
+.tp-drum .dp-selector{position:absolute;top:50%;transform:translateY(-50%);left:4px;right:4px;height:36px;border-top:2px solid var(--primary);border-bottom:2px solid var(--primary);border-radius:6px;pointer-events:none;z-index:1;}
+.tp-sep{font-size:28px;font-weight:700;color:var(--gray-600);margin:0 4px;padding-top:20px;}
+.tp-preview{text-align:center;font-size:13px;color:var(--gray-500);padding:0 20px 16px;}
+
+/* ── City Search ── */
+.city-search-wrap{position:relative;}
+.city-dropdown{position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid var(--primary);border-top:none;border-radius:0 0 var(--radius-sm) var(--radius-sm);max-height:180px;overflow-y:auto;z-index:9999;box-shadow:0 8px 20px rgba(0,0,0,0.1);display:none;}
+.city-dropdown.open{display:block;}
+.city-option{padding:9px 14px;font-size:13px;color:var(--gray-700);cursor:pointer;transition:background .12s;}
+.city-option:hover,.city-option.active{background:var(--primary-light);color:var(--primary-dark);}
+.city-option em{font-style:normal;font-weight:700;color:var(--primary);}
 </style>
-</head>
 <body>
 <aside class="sidebar">
   <div class="sidebar-brand">
@@ -219,16 +259,23 @@ td.td-code{font-family:monospace;font-size:12px;color:var(--gray-400);font-weigh
         </div>
         <div class="form-group">
           <label class="form-label">Waktu</label>
-          <input class="form-input" type="text" id="inputWaktu" placeholder="08.00–17.00 WIB"/>
+          <div class="form-input date-picker-trigger" id="timeTrigger" onclick="openTimePicker()" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;">
+            <span id="timeTriggerText" style="color:var(--gray-400);">Pilih waktu mulai &amp; selesai</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="color:var(--gray-400);flex-shrink:0;"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>
+          </div>
+          <input type="hidden" id="inputWaktu"/>
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">Lokasi (Kota)</label>
-          <input class="form-input" type="text" id="inputLokasi" placeholder="Jakarta"/>
+          <label class="form-label">Kota</label>
+          <div class="city-search-wrap">
+            <input class="form-input" type="text" id="inputLokasi" placeholder="Cari kota..." autocomplete="off" oninput="filterKota(this.value)" onfocus="filterKota(this.value)" onblur="setTimeout(()=>closeCityDropdown(),200)"/>
+            <div class="city-dropdown" id="cityDropdown"></div>
+          </div>
         </div>
         <div class="form-group">
-          <label class="form-label">Venue</label>
+          <label class="form-label">Lokasi / Venue</label>
           <input class="form-input" type="text" id="inputVenue" placeholder="Nama gedung/platform"/>
         </div>
       </div>
@@ -242,15 +289,26 @@ td.td-code{font-family:monospace;font-size:12px;color:var(--gray-400);font-weigh
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">Harga</label>
-          <input class="form-input" type="text" id="inputHarga" placeholder="Gratis / Rp 100.000"/>
-        </div>
-        <div class="form-group">
           <label class="form-label">Tipe Harga</label>
-          <select class="form-input" id="inputTipeHarga">
+          <select class="form-input" id="inputTipeHarga" onchange="onTipeHargaChange()">
             <option value="free">Gratis</option>
             <option value="paid">Berbayar</option>
           </select>
+        </div>
+        <div class="form-group" id="groupHarga" style="display:none;">
+          <label class="form-label">Harga Tiket</label>
+          <div class="harga-wrap">
+            <span class="harga-prefix">Rp</span>
+            <input class="form-input harga-input-rp" type="text" id="inputHarga" placeholder="0" oninput="formatHargaInput(this)" inputmode="numeric"/>
+          </div>
+          <div class="harga-preview" id="hargaPreview"></div>
+        </div>
+        <div class="form-group" id="groupGratis">
+          <label class="form-label">Harga Tiket</label>
+          <div class="gratis-badge">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+            Gratis untuk semua peserta
+          </div>
         </div>
       </div>
       <div class="form-group">
@@ -261,6 +319,31 @@ td.td-code{font-family:monospace;font-size:12px;color:var(--gray-400);font-weigh
     <div class="modal-footer">
       <button class="btn-outline" onclick="document.getElementById('modal-overlay').classList.remove('open')">Batal</button>
       <button class="btn-primary" id="btnSimpan" onclick="simpanEvent()">Simpan Event</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scroll Time Picker -->
+<div class="tp-overlay" id="tp-overlay" onclick="if(event.target===this)closeTimePicker()">
+  <div class="tp-sheet">
+    <div class="tp-header">
+      <button class="tp-btn-cancel" onclick="closeTimePicker()">Batal</button>
+      <span id="tpTitle">Pilih Waktu Mulai</span>
+      <button class="tp-btn-ok" onclick="confirmTime()">OK</button>
+    </div>
+    <div class="tp-preview" id="tpPreview">--:-- WIB</div>
+    <div class="tp-body">
+      <div class="tp-drums">
+        <div class="tp-drum-wrap">
+          <div class="tp-drum-label">Jam</div>
+          <div class="tp-drum" id="tpDrumJam"><div class="dp-selector"></div><div class="tp-drum-inner" id="tpDrumJamInner"></div></div>
+        </div>
+        <div class="tp-sep">:</div>
+        <div class="tp-drum-wrap">
+          <div class="tp-drum-label">Menit</div>
+          <div class="tp-drum" id="tpDrumMenit"><div class="dp-selector"></div><div class="tp-drum-inner" id="tpDrumMenitInner"></div></div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -476,12 +559,15 @@ function openModalBuat() {
   editId = null;
   document.getElementById('modalTitle').textContent = 'Buat Event Baru';
   document.getElementById('btnSimpan').textContent = 'Buat Event';
-  ['inputNama','inputTanggal','inputWaktu','inputLokasi','inputVenue','inputDeskripsi','inputPenyelenggara','inputHarga','inputKapasitas'].forEach(id => document.getElementById(id).value = '');
+  ['inputNama','inputTanggal','inputWaktu','inputLokasi','inputVenue','inputDeskripsi','inputPenyelenggara','inputKapasitas'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('inputHarga').value = '';
+  document.getElementById('hargaPreview').textContent = '';
   const trig = document.getElementById('dateTriggerText');
   trig.textContent = 'Pilih tanggal';
   trig.style.color = 'var(--gray-400)';
   document.getElementById('inputKategori').value = 'seminar';
   document.getElementById('inputTipeHarga').value = 'free';
+  onTipeHargaChange();
   document.getElementById('modal-overlay').classList.add('open');
 }
 
@@ -502,8 +588,15 @@ function openModalEdit(id) {
   document.getElementById('inputVenue').value = ev.venue;
   document.getElementById('inputDeskripsi').value = ev.deskripsi || '';
   document.getElementById('inputPenyelenggara').value = ev.penyelenggara;
-  document.getElementById('inputHarga').value = ev.harga;
   document.getElementById('inputTipeHarga').value = ev.tipeHarga;
+  onTipeHargaChange();
+  // Set harga: strip non-digit lalu format ulang
+  if (ev.tipeHarga === 'paid') {
+    const angka = String(ev.harga).replace(/[^0-9]/g,'');
+    const el = document.getElementById('inputHarga');
+    el.value = angka ? parseInt(angka).toLocaleString('id-ID') : '';
+    updateHargaPreview(angka ? parseInt(angka) : 0);
+  }
   document.getElementById('inputKapasitas').value = ev.kapasitas;
   document.getElementById('modal-overlay').classList.add('open');
 }
@@ -518,12 +611,17 @@ function simpanEvent() {
     venue: document.getElementById('inputVenue').value.trim(),
     deskripsi: document.getElementById('inputDeskripsi').value.trim(),
     penyelenggara: document.getElementById('inputPenyelenggara').value.trim(),
-    harga: document.getElementById('inputHarga').value.trim(),
+    harga: document.getElementById('inputTipeHarga').value === 'free' ? 'Gratis' : 'Rp ' + document.getElementById('inputHarga').value.trim(),
     tipeHarga: document.getElementById('inputTipeHarga').value,
     kapasitas: document.getElementById('inputKapasitas').value,
     createdBy: idUser
   };
   if (!body.nama || !body.tanggal || !body.lokasi) { showToast('⚠️ Nama, tanggal, dan lokasi wajib diisi!', 'error'); return; }
+  if (body.tipeHarga === 'paid') {
+    const angka = parseInt(document.getElementById('inputHarga').value.replace(/[^0-9]/g,''));
+    if (!angka || angka < 1000) { showToast('⚠️ Harga minimal Rp 1.000 untuk event berbayar!', 'error'); return; }
+    body.harga = 'Rp ' + angka.toLocaleString('id-ID');
+  }
   const url = editId ? `/api/events/${editId}` : '/api/events';
   const method = editId ? 'PUT' : 'POST';
   fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
@@ -688,6 +786,222 @@ function attachDrumScroll(drumKey) {
     const cur = getTranslate();
     snapToIndex(cur - Math.sign(e.deltaY) * 36);
   }, {passive:false});
+}
+
+// ========== TIME PICKER ==========
+const HOURS   = Array.from({length:24}, (_,i) => String(i).padStart(2,'0'));
+const MINUTES = Array.from({length:60}, (_,i) => String(i).padStart(2,'0'));
+let tpSel = { startJam:8, startMenit:0, endJam:17, endMenit:0 };
+let tpPhase = 'start';
+
+function buildTpDrum(innerId, items, selIdx) {
+  const inner = document.getElementById(innerId);
+  let html = '<div>&nbsp;</div><div>&nbsp;</div>';
+  items.forEach((v,i) => html += '<div class="' + (i===selIdx?'sel':'') + '">' + v + '</div>');
+  html += '<div>&nbsp;</div><div>&nbsp;</div>';
+  inner.innerHTML = html;
+  inner.style.transform = 'translateY(' + (-selIdx*36) + 'px)';
+}
+
+function updateTpPreview() {
+  const sJ = String(tpSel.startJam).padStart(2,'0');
+  const sM = String(tpSel.startMenit).padStart(2,'0');
+  const eJ = String(tpSel.endJam).padStart(2,'0');
+  const eM = String(tpSel.endMenit).padStart(2,'0');
+  document.getElementById('tpPreview').textContent = sJ+'.'+sM+' \u2013 '+eJ+'.'+eM+' WIB';
+}
+
+function openTimePicker() {
+  tpPhase = 'start';
+  document.getElementById('tpTitle').textContent = 'Waktu Mulai';
+  buildTpDrum('tpDrumJamInner', HOURS, tpSel.startJam);
+  buildTpDrum('tpDrumMenitInner', MINUTES, MINUTES.indexOf(String(tpSel.startMenit).padStart(2,'0')));
+  updateTpPreview();
+  attachTpScroll('tpDrumJam','jam');
+  attachTpScroll('tpDrumMenit','menit');
+  document.getElementById('tp-overlay').classList.add('open');
+}
+
+function closeTimePicker() {
+  document.getElementById('tp-overlay').classList.remove('open');
+}
+
+function confirmTime() {
+  if (tpPhase === 'start') {
+    tpPhase = 'end';
+    document.getElementById('tpTitle').textContent = 'Waktu Selesai';
+    buildTpDrum('tpDrumJamInner', HOURS, tpSel.endJam);
+    buildTpDrum('tpDrumMenitInner', MINUTES, MINUTES.indexOf(String(tpSel.endMenit).padStart(2,'0')));
+    attachTpScroll('tpDrumJam','jam');
+    attachTpScroll('tpDrumMenit','menit');
+    return;
+  }
+  const sJ = String(tpSel.startJam).padStart(2,'0');
+  const sM = String(tpSel.startMenit).padStart(2,'0');
+  const eJ = String(tpSel.endJam).padStart(2,'0');
+  const eM = String(tpSel.endMenit).padStart(2,'0');
+  const val = sJ+'.'+sM+'\u2013'+eJ+'.'+eM+' WIB';
+  document.getElementById('inputWaktu').value = val;
+  const trigger = document.getElementById('timeTriggerText');
+  trigger.textContent = val;
+  trigger.style.color = 'var(--gray-800)';
+  closeTimePicker();
+}
+
+// Map untuk simpan handler agar bisa di-remove saat re-attach
+const _tpHandlers = {};
+
+function attachTpScroll(drumId, key) {
+  const drum = document.getElementById(drumId);
+  const items = key === 'jam' ? HOURS : MINUTES;
+
+  // Hapus event lama supaya tidak menumpuk
+  if (_tpHandlers[drumId]) {
+    const h = _tpHandlers[drumId];
+    drum.removeEventListener('mousedown', h.md);
+    drum.removeEventListener('touchstart', h.ts);
+    drum.removeEventListener('touchmove', h.tm);
+    drum.removeEventListener('touchend', h.te);
+    drum.removeEventListener('wheel', h.wh);
+    window.removeEventListener('mousemove', h.mm);
+    window.removeEventListener('mouseup', h.mu);
+  }
+
+  let startY = 0, startTranslate = 0, isDragging = false;
+
+  function getInner() { return document.getElementById(drumId).querySelector('.tp-drum-inner'); }
+  function getT() {
+    const t = getInner().style.transform || 'translateY(0px)';
+    return parseFloat(t.replace('translateY(','').replace('px)',''));
+  }
+  function snapTo(translate) {
+    const ni = getInner();
+    const idx = Math.max(0, Math.min(Math.round(-translate / 36), items.length - 1));
+    ni.style.transition = 'transform .2s ease';
+    ni.style.transform = 'translateY(' + (-idx * 36) + 'px)';
+    ni.querySelectorAll('div').forEach((d, i) => {
+      const real = i - 2;
+      if (real < 0 || real >= items.length) return;
+      const isSel = real === idx;
+      d.classList.toggle('sel', isSel);
+      d.style.fontSize = isSel ? '17px' : '15px';
+      d.style.fontWeight = isSel ? '700' : '500';
+      d.style.color = isSel ? 'var(--gray-800)' : 'var(--gray-400)';
+    });
+    if (key === 'jam') {
+      if (tpPhase === 'start') tpSel.startJam = idx; else tpSel.endJam = idx;
+    } else {
+      const m = parseInt(items[idx]);
+      if (tpPhase === 'start') tpSel.startMenit = m; else tpSel.endMenit = m;
+    }
+    updateTpPreview();
+    setTimeout(() => { getInner().style.transition = ''; }, 220);
+  }
+
+  const md = e => { isDragging = true; startY = e.clientY; startTranslate = getT(); getInner().style.transition = 'none'; };
+  const mm = e => { if (!isDragging) return; getInner().style.transform = 'translateY(' + (startTranslate + (e.clientY - startY)) + 'px)'; };
+  const mu = () => { if (!isDragging) return; isDragging = false; snapTo(getT()); };
+  const ts = e => { startY = e.touches[0].clientY; startTranslate = getT(); getInner().style.transition = 'none'; };
+  const tm = e => { getInner().style.transform = 'translateY(' + (startTranslate + (e.touches[0].clientY - startY)) + 'px)'; };
+  const te = () => snapTo(getT());
+  const wh = e => { e.preventDefault(); snapTo(getT() - Math.sign(e.deltaY) * 36); };
+
+  drum.addEventListener('mousedown', md);
+  window.addEventListener('mousemove', mm);
+  window.addEventListener('mouseup', mu);
+  drum.addEventListener('touchstart', ts, { passive: true });
+  drum.addEventListener('touchmove', tm, { passive: true });
+  drum.addEventListener('touchend', te);
+  drum.addEventListener('wheel', wh, { passive: false });
+
+  _tpHandlers[drumId] = { md, mm, mu, ts, tm, te, wh };
+}
+
+// ========== CITY SEARCH ==========
+const KOTA_INDONESIA = [
+  'Ambon','Balikpapan','Banda Aceh','Bandar Lampung','Bandung','Banjarmasin','Banjarbaru',
+  'Batam','Batu','Bekasi','Bengkulu','Binjai','Bima','Bitung','Blitar','Bogor','Bontang',
+  'Bukittinggi','Cianjur','Cilegon','Cimahi','Cirebon','Denpasar','Depok','Dumai',
+  'Ende','Garut','Gorontalo','Jakarta Barat','Jakarta Pusat','Jakarta Selatan',
+  'Jakarta Timur','Jakarta Utara','Jambi','Jayapura','Jember','Jombang','Karawang',
+  'Kediri','Kendari','Klaten','Kudus','Kupang','Lamongan','Lhokseumawe',
+  'Lubuklinggau','Madiun','Magelang','Majalengka','Makassar','Malang','Manado',
+  'Manokwari','Mataram','Medan','Metro','Mojokerto','Ngawi','Padang','Padang Panjang',
+  'Palangka Raya','Palembang','Palu','Pangkalpinang','Parepare','Pasuruan','Pati',
+  'Pekalongan','Pekanbaru','Pematang Siantar','Pontianak','Prabumulih','Probolinggo',
+  'Purwokerto','Sabang','Salatiga','Samarinda','Semarang','Serang','Sibolga',
+  'Sidoarjo','Singkawang','Situbondo','Solok','Sorong','Subulussalam','Sukabumi',
+  'Surabaya','Surakarta','Tangerang','Tangerang Selatan','Tarakan','Tasikmalaya',
+  'Tebing Tinggi','Tegal','Ternate','Tidore Kepulauan','Tomohon','Tual','Tuban',
+  'Tulungagung','Yogyakarta'
+].sort();
+
+function filterKota(q) {
+  const dd = document.getElementById('cityDropdown');
+  const trimmed = q.trim().toLowerCase();
+  const results = trimmed.length === 0
+    ? KOTA_INDONESIA.slice(0, 30)
+    : KOTA_INDONESIA.filter(k => k.toLowerCase().includes(trimmed)).slice(0, 30);
+
+  if (results.length === 0) {
+    dd.innerHTML = '<div class="city-option" style="color:var(--gray-400)">Kota tidak ditemukan</div>';
+    dd.classList.add('open');
+    return;
+  }
+  const re = trimmed ? new RegExp('(' + trimmed.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi') : null;
+  dd.innerHTML = results.map(k => {
+    const hl = re ? k.replace(re,'<em>$1</em>') : k;
+    return '<div class="city-option" onmousedown="selectKota(\'' + k + '\')">' + hl + '</div>';
+  }).join('');
+  dd.classList.add('open');
+}
+
+function selectKota(nama) {
+  document.getElementById('inputLokasi').value = nama;
+  closeCityDropdown();
+}
+
+function closeCityDropdown() {
+  const dd = document.getElementById('cityDropdown');
+  if (dd) dd.classList.remove('open');
+}
+
+// ========== HARGA ==========
+function onTipeHargaChange() {
+  const tipe = document.getElementById('inputTipeHarga').value;
+  const groupHarga  = document.getElementById('groupHarga');
+  const groupGratis = document.getElementById('groupGratis');
+  if (tipe === 'paid') {
+    groupHarga.style.display  = '';
+    groupGratis.style.display = 'none';
+    document.getElementById('inputHarga').focus();
+  } else {
+    groupHarga.style.display  = 'none';
+    groupGratis.style.display = '';
+    document.getElementById('inputHarga').value = '';
+    document.getElementById('hargaPreview').textContent = '';
+  }
+}
+
+function formatHargaInput(el) {
+  const raw = el.value.replace(/[^0-9]/g, '');
+  const num = raw ? parseInt(raw) : 0;
+  el.value = raw ? num.toLocaleString('id-ID') : '';
+  updateHargaPreview(num);
+}
+
+function updateHargaPreview(num) {
+  const prev = document.getElementById('hargaPreview');
+  if (!num || num === 0) {
+    prev.textContent = '';
+    prev.className = 'harga-preview';
+  } else if (num < 1000) {
+    prev.textContent = '⚠️ Harga minimal Rp 1.000';
+    prev.className = 'harga-preview warn';
+  } else {
+    prev.textContent = '✓ Peserta akan membayar Rp ' + num.toLocaleString('id-ID');
+    prev.className = 'harga-preview valid';
+  }
 }
 
 function logout() { localStorage.clear(); window.location.href = 'login.html'; }

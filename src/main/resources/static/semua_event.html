@@ -320,7 +320,7 @@ function renderCard(ev) {
         <div class="capacity-label"><span>Terisi</span><span>${ev.terisi}/${ev.kapasitas}</span></div>
         <div class="capacity-bar"><div class="capacity-fill ${fillClass}" style="width:${pct}%"></div></div>
       </div>
-      <div class="event-footer">${priceHtml}<button class="btn-daftar" ${isFull ? 'disabled' : ''} onclick="daftar(${ev.id},event)">${isFull ? 'Penuh' : 'Daftar'}</button></div>
+      <div class="event-footer">${priceHtml}${roleUser !== 'penyelenggara' ? `<button class="btn-daftar" ${isFull ? 'disabled' : ''} onclick="daftar(${ev.id},event)">${isFull ? 'Penuh' : 'Daftar'}</button>` : ''}</div>
     </div>
   </div>`;
 }
@@ -342,9 +342,14 @@ function openModal(id) {
     <div class="detail-row"><span class="detail-icon">🏢</span><div><div class="detail-label">Penyelenggara</div><div class="detail-val">${ev.penyelenggara}</div></div></div>
     <div class="detail-row"><span class="detail-icon">💰</span><div><div class="detail-label">Harga Tiket</div><div class="detail-val">${ev.harga}</div></div></div>`;
   const btn = document.getElementById('modal-daftar-btn');
-  btn.disabled = isFull;
-  btn.textContent = isFull ? 'Event Penuh' : 'Daftar Sekarang';
-  btn.onclick = () => { daftar(id, new Event('click')); closeModal(); };
+  if (roleUser === 'penyelenggara') {
+    btn.style.display = 'none';
+  } else {
+    btn.style.display = '';
+    btn.disabled = isFull;
+    btn.textContent = isFull ? 'Event Penuh' : 'Daftar Sekarang';
+    btn.onclick = () => { daftar(id, new Event('click')); closeModal(); };
+  }
   document.getElementById('modal-overlay').classList.add('open');
 }
 
