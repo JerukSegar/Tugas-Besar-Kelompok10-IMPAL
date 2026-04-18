@@ -164,7 +164,7 @@ td.td-code{font-family:monospace;font-size:12px;color:var(--gray-400);font-weigh
       <p id="pageDesc">Daftar event yang kamu ikuti</p>
     </div>
     <div class="topbar-right">
-      <div class="icon-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg></div>
+  
       <button class="btn-buat hidden" id="btnBuatEvent" onclick="openModalBuat()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
         Buat Event
@@ -358,7 +358,7 @@ function setTab(tab, el) {
   renderPeserta();
 }
 
-function renderPeserta() {
+async function renderPeserta() {
   const tbody = document.getElementById('table-body');
   let data = myData;
   if (activeTab !== 'all') data = data.filter(e => e.status === activeTab);
@@ -366,7 +366,32 @@ function renderPeserta() {
     tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-2.18c.07-.44.18-.88.18-1.36C18 2.06 15.96 0 13.5 0S9 2.06 9 4.64c0 .48.11.92.18 1.36H7c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h13c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6.5-4c1.38 0 2.5 1.12 2.5 2.5S14.88 7 13.5 7 11 5.88 11 4.5 12.12 2 13.5 2zM20 20H7V8h13v12z"/></svg><h3>Belum ada event</h3><p>Kamu belum mendaftar event apapun</p></div></td></tr>`;
     return;
   }
-  tbody.innerHTML = data.map(e => `<tr>
+
+  // Fetch status tiket untuk setiap pendaftaran secara paralel
+  const tiketStatusMap = {};
+  await Promise.all(data.map(async e => {
+    try {
+      const res = await fetch('/api/tiket/pendaftaran/' + e.pendaftaranId);
+      const json = await res.json();
+      const tikets = json.tiket || [];
+      // Sudah check-in jika ada tiket dengan status 'digunakan'
+      tiketStatusMap[e.pendaftaranId] = tikets.some(t => t.statusTiket === 'digunakan');
+    } catch {
+      tiketStatusMap[e.pendaftaranId] = false;
+    }
+  }));
+
+  tbody.innerHTML = data.map(e => {
+    const sudahCheckIn = tiketStatusMap[e.pendaftaranId] === true;
+    let aksiHtml = '';
+    if (e.status === 'upcoming') {
+      if (sudahCheckIn) {
+        aksiHtml = `<span class="badge badge-done" style="font-size:11px;padding:5px 10px;">✅ Sudah Check-In</span>`;
+      } else {
+        aksiHtml = `<button class="btn-sm btn-cancel" onclick="batalDaftar(${e.eventId})">Batal</button>`;
+      }
+    }
+    return `<tr>
     <td><div class="td-event">
       <div class="event-dot" style="background:${thumbColor(e.kategori)};"><svg viewBox="0 0 24 24" fill="${thumbIcon(e.kategori)}"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg></div>
       <div><div class="event-title">${e.nama || '-'}</div><div class="event-org">${e.penyelenggara || '-'}</div></div>
@@ -378,9 +403,10 @@ function renderPeserta() {
     <td class="td-code">${e.kodeTiket}</td>
     <td><div class="td-actions">
       <button class="btn-sm btn-view" onclick="showToast('Kode tiket: ${e.kodeTiket}','success')">Detail</button>
-      ${e.status === 'upcoming' ? `<button class="btn-sm btn-cancel" onclick="batalDaftar(${e.eventId})">Batal</button>` : ''}
+      ${aksiHtml}
     </div></td>
-  </tr>`).join('');
+  </tr>`;
+  }).join('');
 }
 
 function batalDaftar(eventId) {

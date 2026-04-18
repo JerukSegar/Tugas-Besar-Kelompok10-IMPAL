@@ -11,7 +11,7 @@ public class NotifikasiController {
     @Autowired private NotifikasiRepository notifikasiRepository;
     @Autowired private EventRepository eventRepository;
     @Autowired private PendaftaranRepository pendaftaranRepository;
-    @Autowired private UserRepository userRepository;
+    @Autowired private NotifikasiReadRepository notifikasiReadRepository;
 
     // ===== BROADCAST ke semua peserta event =====
     @PostMapping("/broadcast")
@@ -21,29 +21,22 @@ public class NotifikasiController {
         String judul         = body.get("judul").toString();
         String pesan         = body.get("pesan").toString();
 
-        if (judul == null || judul.isBlank()) {
+        if (judul == null || judul.isBlank())
             return Map.of("success", false, "message", "Judul tidak boleh kosong!");
-        }
-        if (pesan == null || pesan.isBlank()) {
+        if (pesan == null || pesan.isBlank())
             return Map.of("success", false, "message", "Pesan tidak boleh kosong!");
-        }
 
         Optional<Event> evOpt = eventRepository.findById(eventId);
-        if (evOpt.isEmpty()) {
+        if (evOpt.isEmpty())
             return Map.of("success", false, "message", "Event tidak ditemukan!");
-        }
 
-        // Cek kepemilikan event
         Event ev = evOpt.get();
-        if (!ev.getCreatedBy().equals(penyelenggaraId)) {
+        if (!ev.getCreatedBy().equals(penyelenggaraId))
             return Map.of("success", false, "message", "Kamu tidak berhak broadcast event ini!");
-        }
 
-        // Hitung jumlah peserta yang terdaftar
         List<Pendaftaran> pesertaList = pendaftaranRepository.findAll()
             .stream().filter(p -> p.getEventId().equals(eventId)).toList();
 
-        // Simpan notifikasi ke database
         Notifikasi notif = new Notifikasi();
         notif.setEventId(eventId);
         notif.setPenyelenggaraId(penyelenggaraId);
@@ -71,24 +64,32 @@ public class NotifikasiController {
         List<Pendaftaran> pendaftaranList = pendaftaranRepository.findByUserId(userId);
         List<Map<String, Object>> hasil = new ArrayList<>();
 
+        // Ambil semua ID notifikasi yang sudah dihapus user ini
+        Set<Long> deletedIds = new HashSet<>(notifikasiReadRepository.findDeletedIdsByUserId(userId));
+        // Ambil semua ID notifikasi yang sudah dibaca user ini
+        Set<Long> readIds = new HashSet<>(notifikasiReadRepository.findReadIdsByUserId(userId));
+
         for (Pendaftaran p : pendaftaranList) {
             List<Notifikasi> notifs = notifikasiRepository.findByEventId(p.getEventId());
             Optional<Event> evOpt = eventRepository.findById(p.getEventId());
             String namaEvent = evOpt.isPresent() ? evOpt.get().getNama() : "-";
 
             for (Notifikasi n : notifs) {
+                // Skip notifikasi yang sudah dihapus user ini
+                if (deletedIds.contains(n.getId())) continue;
+
                 Map<String, Object> item = new HashMap<>();
-                item.put("id",        n.getId());
-                item.put("judul",     n.getJudul());
-                item.put("pesan",     n.getPesan());
-                item.put("namaEvent", namaEvent);
-                item.put("eventId",   n.getEventId());
-                item.put("dibuatAt",  n.getDibuatAt());
+                item.put("id",          n.getId());
+                item.put("judul",       n.getJudul());
+                item.put("pesan",       n.getPesan());
+                item.put("namaEvent",   namaEvent);
+                item.put("eventId",     n.getEventId());
+                item.put("dibuatAt",    n.getDibuatAt());
+                item.put("sudahDibaca", readIds.contains(n.getId()));
                 hasil.add(item);
             }
         }
 
-        // Urutkan terbaru dulu
         hasil.sort((a, b) -> b.get("id").toString().compareTo(a.get("id").toString()));
         return hasil;
     }
@@ -97,5 +98,63 @@ public class NotifikasiController {
     @GetMapping("/penyelenggara/{userId}")
     public List<Notifikasi> getByPenyelenggara(@PathVariable Long userId) {
         return notifikasiRepository.findByPenyelenggaraId(userId);
+    }
+
+    // ===== TANDAI SATU NOTIFIKASI DIBACA =====
+    @PutMapping("/{notifId}/baca")
+    public Map<String, Object> tandaiBaca(
+            @PathVariable Long notifId,
+            @RequestBody(required = false) Map<String, Object> body) {
+        Long userId = null;
+        if (body != null && body.get("userId") != null) {
+            userId = Long.parseLong(body.get("userId").toString());
+        }
+        if (userId == null) return Map.of("success", true); // frontend pakai localStorage, ok
+
+        notifikasiReadRepository.markAsRead(userId, notifId);
+        return Map.of("success", true);
+    }
+
+    // ===== TANDAI SEMUA DIBACA =====
+    @PutMapping("/baca-semua/{userId}")
+    public Map<String, Object> tandaiSemuaBaca(@PathVariable Long userId) {
+        List<Pendaftaran> pendaftaranList = pendaftaranRepository.findByUserId(userId);
+        for (Pendaftaran p : pendaftaranList) {
+            List<Notifikasi> notifs = notifikasiRepository.findByEventId(p.getEventId());
+            for (Notifikasi n : notifs) {
+                notifikasiReadRepository.markAsRead(userId, n.getId());
+            }
+        }
+        return Map.of("success", true);
+    }
+
+    // ===== HAPUS SATU NOTIFIKASI =====
+    // Jika ada userId = soft delete untuk peserta
+    // Jika tidak ada userId = hard delete oleh penyelenggara
+    @DeleteMapping("/{notifId}")
+    public Map<String, Object> hapusNotif(
+            @PathVariable Long notifId,
+            @RequestParam(required = false) Long userId) {
+        if (userId != null) {
+            // Peserta: soft delete (hanya tersembunyi untuk user ini)
+            notifikasiReadRepository.markAsDeleted(userId, notifId);
+        } else {
+            // Penyelenggara: hard delete dari database
+            notifikasiRepository.deleteById(notifId);
+        }
+        return Map.of("success", true, "message", "Notifikasi dihapus");
+    }
+
+    // ===== HAPUS SEMUA NOTIFIKASI (untuk user ini saja) =====
+    @DeleteMapping("/hapus-semua/{userId}")
+    public Map<String, Object> hapusSemua(@PathVariable Long userId) {
+        List<Pendaftaran> pendaftaranList = pendaftaranRepository.findByUserId(userId);
+        for (Pendaftaran p : pendaftaranList) {
+            List<Notifikasi> notifs = notifikasiRepository.findByEventId(p.getEventId());
+            for (Notifikasi n : notifs) {
+                notifikasiReadRepository.markAsDeleted(userId, n.getId());
+            }
+        }
+        return Map.of("success", true, "message", "Semua notifikasi dihapus");
     }
 }
