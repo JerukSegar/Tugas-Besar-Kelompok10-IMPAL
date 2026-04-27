@@ -30,6 +30,17 @@ public class AuthController {
             return Map.of("success", false, "message", "Semua field wajib diisi!");
         }
 
+        // Validasi password: minimal 8 karakter
+        if (pass.length() < 8) {
+            return Map.of("success", false, "message", "Password minimal 8 karakter!");
+        }
+
+        // Validasi password: wajib mengandung minimal 1 karakter selain huruf dan angka
+        boolean adaSimbol = !pass.matches("[a-zA-Z0-9]+");
+        if (!adaSimbol) {
+            return Map.of("success", false, "message", "Password harus mengandung minimal 1 simbol!");
+        }
+
         if (userRepository.findByEmail(email).isPresent()) {
             return Map.of("success", false, "message", "Email sudah terdaftar!");
         }

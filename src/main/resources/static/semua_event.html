@@ -108,6 +108,31 @@ select.form-select:focus{border-color:var(--primary);}
 .toast.error{background:#991b1b;}
 @keyframes slideIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:none;}}
 .hidden{display:none!important;}
+
+/* ===== NOTIF DROPDOWN ===== */
+.notif-wrapper{position:relative;}
+.notif-badge{position:absolute;top:-5px;right:-5px;background:var(--danger);color:white;font-size:10px;font-weight:700;border-radius:999px;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;padding:0 4px;border:2px solid white;}
+.notif-dropdown{position:absolute;top:calc(100% + 8px);right:0;width:360px;background:white;border:1px solid var(--gray-200);border-radius:var(--radius-lg);box-shadow:0 8px 32px rgba(0,0,0,0.12);z-index:999;overflow:hidden;display:none;}
+.notif-dropdown.open{display:block;}
+.notif-drop-header{padding:14px 16px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between;}
+.notif-drop-title{font-size:14px;font-weight:700;color:var(--gray-800);}
+.notif-clear-btn{font-size:11px;color:var(--primary);background:none;border:none;cursor:pointer;font-weight:600;padding:0;}
+.notif-clear-btn:hover{text-decoration:underline;}
+.notif-drop-list{max-height:340px;overflow-y:auto;}
+.notif-item{padding:12px 16px;border-bottom:1px solid var(--gray-100);cursor:pointer;transition:background 0.15s;}
+.notif-item:hover{background:var(--gray-50);}
+.notif-item:last-child{border-bottom:none;}
+.notif-item-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px;}
+.notif-judul{font-size:13px;font-weight:700;color:var(--gray-800);line-height:1.3;}
+.notif-time{font-size:11px;color:var(--gray-400);white-space:nowrap;flex-shrink:0;}
+.notif-event-tag{font-size:10px;font-weight:600;color:var(--primary);background:var(--primary-light);padding:2px 7px;border-radius:99px;display:inline-block;margin-bottom:4px;}
+.notif-pesan{font-size:12px;color:var(--gray-600);line-height:1.5;}
+.notif-empty{padding:32px 16px;text-align:center;color:var(--gray-400);}
+.notif-empty svg{width:36px;height:36px;margin:0 auto 8px;display:block;opacity:0.3;}
+.notif-empty p{font-size:13px;}
+.notif-drop-footer{padding:10px 16px;border-top:1px solid var(--gray-100);text-align:center;}
+.notif-drop-footer a{font-size:12px;color:var(--primary);font-weight:600;text-decoration:none;}
+.notif-drop-footer a:hover{text-decoration:underline;}
 </style>
 </head>
 <body>
@@ -139,7 +164,7 @@ select.form-select:focus{border-color:var(--primary);}
 <main class="main">
   <div class="topbar">
     <div class="topbar-left"><h1>Semua Event</h1><p>Temukan dan daftar event yang kamu minati</p></div>
-    <div class="icon-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg></div>
+
   </div>
   <div class="content">
     <div class="filter-bar">
@@ -295,7 +320,7 @@ function renderCard(ev) {
         <div class="capacity-label"><span>Terisi</span><span>${ev.terisi}/${ev.kapasitas}</span></div>
         <div class="capacity-bar"><div class="capacity-fill ${fillClass}" style="width:${pct}%"></div></div>
       </div>
-      <div class="event-footer">${priceHtml}<button class="btn-daftar" ${isFull ? 'disabled' : ''} onclick="daftar(${ev.id},event)">${isFull ? 'Penuh' : 'Daftar'}</button></div>
+      <div class="event-footer">${priceHtml}${roleUser !== 'penyelenggara' ? `<button class="btn-daftar" ${isFull ? 'disabled' : ''} onclick="daftar(${ev.id},event)">${isFull ? 'Penuh' : 'Daftar'}</button>` : ''}</div>
     </div>
   </div>`;
 }
@@ -317,9 +342,14 @@ function openModal(id) {
     <div class="detail-row"><span class="detail-icon">🏢</span><div><div class="detail-label">Penyelenggara</div><div class="detail-val">${ev.penyelenggara}</div></div></div>
     <div class="detail-row"><span class="detail-icon">💰</span><div><div class="detail-label">Harga Tiket</div><div class="detail-val">${ev.harga}</div></div></div>`;
   const btn = document.getElementById('modal-daftar-btn');
-  btn.disabled = isFull;
-  btn.textContent = isFull ? 'Event Penuh' : 'Daftar Sekarang';
-  btn.onclick = () => { daftar(id, new Event('click')); closeModal(); };
+  if (roleUser === 'penyelenggara') {
+    btn.style.display = 'none';
+  } else {
+    btn.style.display = '';
+    btn.disabled = isFull;
+    btn.textContent = isFull ? 'Event Penuh' : 'Daftar Sekarang';
+    btn.onclick = () => { daftar(id, new Event('click')); closeModal(); };
+  }
   document.getElementById('modal-overlay').classList.add('open');
 }
 
@@ -333,20 +363,19 @@ function daftar(id, e) {
   if (e) e.stopPropagation();
   if (!idUser) { showToast('⚠️ Silakan login dulu!', 'error'); return; }
   if (roleUser === 'penyelenggara') { showToast('⚠️ Penyelenggara tidak bisa mendaftar event!', 'error'); return; }
-  fetch('/api/events/daftar', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId: idUser, eventId: id })
-  })
-  .then(r => r.json())
-  .then(data => {
-    showToast((data.success ? '✅ ' : '⚠️ ') + data.message, data.success ? 'success' : 'error');
-    if (data.success) loadEvents();
-  })
-  .catch(() => showToast('❌ Gagal konek ke server!', 'error'));
+  // Arahkan ke halaman konfirmasi terlebih dahulu
+  window.location.href = 'konfirmasi_daftar.html?eventId=' + id;
 }
 
 function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+
+function escHtml(s) {
+  return String(s || '')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
 
 function showToast(msg, type = 'info') {
   const wrap = document.getElementById('toast-wrap');
@@ -358,6 +387,114 @@ function showToast(msg, type = 'info') {
 }
 
 loadEvents();
+
+// ===== NOTIFIKASI =====
+var notifData = [];
+var readIds = new Set(JSON.parse(localStorage.getItem('readNotifIds') || '[]'));
+
+function saveReadIds() {
+  localStorage.setItem('readNotifIds', JSON.stringify([...readIds]));
+}
+
+function loadNotifikasi() {
+  if (roleUser !== 'peserta' || !idUser) return;
+  fetch('/api/notifikasi/peserta/' + idUser)
+    .then(function(r) { if (!r.ok) throw new Error(); return r.json(); })
+    .then(function(data) {
+      notifData = Array.isArray(data) ? data : [];
+      notifData.forEach(function(n) {
+        if (n.sudahDibaca || n.dibaca || n.isRead) readIds.add(String(n.id));
+      });
+      saveReadIds();
+      renderNotifDropdown();
+    })
+    .catch(function() {});
+}
+
+function renderNotifDropdown() {
+  var list  = document.getElementById('notifList');
+  var badge = document.getElementById('notifBadge');
+  if (!list || !badge) return;
+
+  if (!notifData || notifData.length === 0) {
+    list.innerHTML = '<div class="notif-empty"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg><p>Belum ada notifikasi</p></div>';
+    badge.classList.add('hidden');
+    return;
+  }
+
+  var unread = notifData.filter(function(n) { return !readIds.has(String(n.id)); }).length;
+  if (unread > 0) {
+    badge.textContent = unread > 99 ? '99+' : unread;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+
+  list.innerHTML = notifData.map(function(n) {
+    var isRead = readIds.has(String(n.id));
+    var tgl = formatNotifWaktu(n.dibuatAt || n.createdAt || n.waktu);
+    return '<div class="notif-item" style="' + (isRead ? '' : 'background:#f0f6ff;border-left:3px solid var(--primary);') + '" onclick="markRead(' + n.id + ')">' +
+      '<div class="notif-item-header">' +
+        '<span class="notif-judul">' + escHtml(n.judul) + '</span>' +
+        '<span class="notif-time">' + tgl + '</span>' +
+      '</div>' +
+      '<span class="notif-event-tag">📅 ' + escHtml(n.namaEvent || n.nama_event || '-') + '</span>' +
+      '<div class="notif-pesan">' + escHtml(n.pesan || n.isi || '') + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function markRead(id) {
+  readIds.add(String(id));
+  saveReadIds();
+  fetch('/api/notifikasi/' + id + '/baca', { method: 'PUT' }).catch(function(){});
+  renderNotifDropdown();
+}
+
+function markAllRead() {
+  notifData.forEach(function(n) { readIds.add(String(n.id)); });
+  saveReadIds();
+  fetch('/api/notifikasi/baca-semua/' + idUser, { method: 'PUT' }).catch(function(){});
+  renderNotifDropdown();
+  showToast('✅ Semua notifikasi ditandai dibaca', 'success');
+}
+
+function toggleNotif() {
+  var dd = document.getElementById('notifDropdown');
+  dd.classList.toggle('open');
+  if (dd.classList.contains('open')) {
+    setTimeout(function() {
+      document.addEventListener('click', closeNotifOutside, { once: true });
+    }, 10);
+  }
+}
+
+function closeNotifOutside(e) {
+  var wrapper = document.getElementById('notifWrapper');
+  if (wrapper && !wrapper.contains(e.target)) {
+    document.getElementById('notifDropdown').classList.remove('open');
+  }
+}
+
+function formatNotifWaktu(raw) {
+  if (!raw) return '';
+  try {
+    var d = new Date(raw);
+    var now = new Date();
+    var ms = now - d;
+    var mnt = Math.floor(ms / 60000);
+    var jam = Math.floor(mnt / 60);
+    var hari = Math.floor(jam / 24);
+    if (mnt < 1) return 'Baru saja';
+    if (mnt < 60) return mnt + ' mnt lalu';
+    if (jam < 24) return jam + ' jam lalu';
+    if (hari < 7) return hari + ' hari lalu';
+    return d.toLocaleDateString('id-ID', { day:'numeric', month:'short' });
+  } catch(e) { return ''; }
+}
+
+loadNotifikasi();
+
 </script>
 </body>
 </html>

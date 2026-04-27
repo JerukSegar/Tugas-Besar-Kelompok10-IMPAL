@@ -104,7 +104,11 @@
 
     <div class="field">
       <label for="password">Password</label>
-      <input type="password" id="password" placeholder="Min. 6 karakter"/>
+      <input type="password" id="password" placeholder="Min. 8 karakter + simbol"/>
+      <div id="passStrength" style="margin-top:6px;height:4px;border-radius:2px;background:#E5E7EB;overflow:hidden;">
+        <div id="passStrengthBar" style="height:100%;width:0%;border-radius:2px;transition:width .3s,background .3s;"></div>
+      </div>
+      <div id="passStrengthLabel" style="font-size:11px;margin-top:3px;color:#6B7280;"></div>
     </div>
 
     <div class="field">
@@ -125,13 +129,41 @@
   <script>
     if (localStorage.getItem('token')) { window.location.href = 'dashboard.html'; }
 
+    // Live password strength checker
+    document.getElementById('password').addEventListener('input', function() {
+      const val = this.value;
+      const bar = document.getElementById('passStrengthBar');
+      const lbl = document.getElementById('passStrengthLabel');
+      const simbolPattern = /[^a-zA-Z0-9]/;  // ada karakter selain huruf & angka
+      let score = 0;
+      if (val.length >= 8) score++;
+      if (val.length >= 12) score++;
+      if (/[A-Z]/.test(val)) score++;
+      if (/[0-9]/.test(val)) score++;
+      if (simbolPattern.test(val)) score++;
+      const levels = [
+        { pct: '0%',   color: '#E5E7EB', label: '' },
+        { pct: '25%',  color: '#ef4444', label: '🔴 Sangat lemah' },
+        { pct: '45%',  color: '#f97316', label: '🟠 Lemah' },
+        { pct: '65%',  color: '#f59e0b', label: '🟡 Cukup' },
+        { pct: '85%',  color: '#84cc16', label: '🟢 Kuat' },
+        { pct: '100%', color: '#10b981', label: '✅ Sangat kuat' },
+      ];
+      const lvl = levels[Math.min(score, 5)];
+      bar.style.width = lvl.pct;
+      bar.style.background = lvl.color;
+      lbl.textContent = val.length > 0 ? lvl.label : '';
+    });
+
     function handleRegister() {
       const nama = document.getElementById('nama').value.trim();
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
       const role = document.getElementById('role').value;
       if (!nama || !email || !password) { showNotif('Semua field wajib diisi!', false); return; }
-      if (password.length < 6) { showNotif('Password minimal 6 karakter!', false); return; }
+      if (password.length < 8) { showNotif('Password minimal 8 karakter!', false); return; }
+      const simbolPattern = /[^a-zA-Z0-9]/;  // ada karakter selain huruf & angka
+      if (!simbolPattern.test(password)) { showNotif('Password harus mengandung minimal 1 simbol (contoh: @ # $ % . , = _ + )', false); return; }
       const btn = document.querySelector('.btn-primary');
       btn.textContent = 'Memproses...'; btn.disabled = true;
       fetch('/api/auth/register', {

@@ -65,6 +65,20 @@ textarea.form-input{resize:vertical;min-height:120px;}
 .toast.error{background:#991b1b;}
 @keyframes slideIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:none;}}
 .hidden{display:none!important;}
+
+.history-item{background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius);padding:14px;margin-bottom:10px;position:relative;}
+.history-item:last-child{margin-bottom:0;}
+.history-item-header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;}
+.history-judul{font-size:13px;font-weight:700;color:var(--gray-800);}
+.history-event{font-size:10px;font-weight:700;color:var(--primary);background:var(--primary-light);padding:2px 8px;border-radius:99px;display:inline-block;margin-bottom:6px;}
+.history-pesan{font-size:12px;color:var(--gray-600);line-height:1.5;margin-bottom:6px;}
+.history-time{font-size:11px;color:var(--gray-400);}
+.history-actions{display:flex;gap:6px;align-items:center;}
+.btn-hapus-riwayat{background:none;border:1px solid var(--gray-200);border-radius:var(--radius-sm);padding:3px 8px;font-size:11px;color:var(--gray-400);cursor:pointer;transition:all 0.15s;flex-shrink:0;}
+.btn-hapus-riwayat:hover{background:#fee2e2;border-color:#fca5a5;color:#ef4444;}
+.history-header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.btn-hapus-semua-riwayat{font-size:11px;font-weight:600;color:#ef4444;background:none;border:1px solid #fca5a5;border-radius:var(--radius-sm);padding:4px 10px;cursor:pointer;transition:all 0.15s;}
+.btn-hapus-semua-riwayat:hover{background:#fee2e2;}
 </style>
 </head>
 <body>
@@ -77,8 +91,8 @@ textarea.form-input{resize:vertical;min-height:120px;}
     <a class="nav-item" href="dashboard.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>Dashboard</a>
     <a class="nav-item" href="semua_event.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>Semua Event</a>
     <a class="nav-item" href="event_saya.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>Event Dikelola</a>
-    <a class="nav-item active" href="broadcast.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 11v2h4v-2h-4zm-2 6.61c.96.71 2.21 1.65 3.2 2.39.4-.53.8-1.07 1.2-1.6-.99-.74-2.24-1.68-3.2-2.4-.4.54-.8 1.08-1.2 1.61zM20.4 5.6c-.4-.53-.8-1.07-1.2-1.6-.99.74-2.24 1.68-3.2 2.4.4.53.8 1.07 1.2 1.6.96-.72 2.21-1.65 3.2-2.4zM4 9c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h1v4h2v-4h1l5 3V6L8 9H4zm11.5 3c0-1.33-.58-2.53-1.5-3.35v6.69c.92-.81 1.5-2.01 1.5-3.34z"/></svg>Broadcast</a>
     <a class="nav-item" href="laporan.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>Laporan</a>
+    <a class="nav-item active" href="broadcast.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 11v2h4v-2h-4zm-2 6.61c.96.71 2.21 1.65 3.2 2.39.4-.53.8-1.07 1.2-1.6-.99-.74-2.24-1.68-3.2-2.4-.4.54-.8 1.08-1.2 1.61zM20.4 5.6c-.4-.53-.8-1.07-1.2-1.6-.99.74-2.24 1.68-3.2 2.4.4.53.8 1.07 1.2 1.6.96-.72 2.21-1.65 3.2-2.4zM4 9c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h1v4h2v-4h1l5 3V6L8 9H4zm11.5 3c0-1.33-.58-2.53-1.5-3.35v6.69c.92-.81 1.5-2.01 1.5-3.34z"/></svg>Broadcast</a>
     <a class="nav-item" href="pengaturan.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>Pengaturan</a>
   </nav>
   <div class="sidebar-footer">
@@ -137,8 +151,9 @@ textarea.form-input{resize:vertical;min-height:120px;}
 
     <!-- Riwayat Broadcast -->
     <div class="history-card">
-      <div class="card-title" style="font-size:14px;font-weight:700;margin-bottom:16px;">
-        Riwayat Broadcast
+      <div class="history-header-row">
+        <div class="card-title" style="font-size:14px;font-weight:700;">Riwayat Broadcast</div>
+        <button class="btn-hapus-semua-riwayat" id="btnHapusSemua" onclick="hapusSemua()" style="display:none;">🗑️ Hapus Semua</button>
       </div>
       <div id="historyList">
         <div class="empty-state">
@@ -175,6 +190,7 @@ function loadEvents() {
       data.forEach(function(ev) {
         sel.innerHTML += '<option value="' + ev.id + '">' + ev.nama + '</option>';
       });
+      loadHistory(''); // Auto load semua riwayat
     });
 }
 
@@ -193,27 +209,98 @@ function onEventChange() {
   loadHistory(eventId);
 }
 
+// Simpan riwayat di memory untuk hapus
+var riwayatData = [];
+
 function loadHistory(eventId) {
-  fetch('/api/notifikasi/event/' + eventId)
+  var url = eventId
+    ? '/api/notifikasi/event/' + eventId
+    : '/api/notifikasi/penyelenggara/' + idUser;
+
+  fetch(url)
     .then(function(r) { return r.json(); })
     .then(function(data) {
-      var list = document.getElementById('historyList');
-      if (!data.length) {
-        list.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="currentColor" style="width:40px;height:40px;opacity:0.3;"><path d="M18 11v2h4v-2h-4zm-2 6.61c.96.71 2.21 1.65 3.2 2.39.4-.53.8-1.07 1.2-1.6-.99-.74-2.24-1.68-3.2-2.4-.4.54-.8 1.08-1.2 1.61zM4 9c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h1v4h2v-4h1l5 3V6L8 9H4z"/></svg><div style="font-size:13px;color:var(--gray-500);">Belum ada broadcast</div></div>';
-        return;
-      }
-      var ev = events.find(function(e) { return e.id == eventId; });
-      var namaEvent = ev ? ev.nama : '-';
-      list.innerHTML = data.map(function(n) {
-        var tgl = n.dibuatAt ? n.dibuatAt.substring(0,10) : '-';
-        return '<div class="history-item">' +
-          '<div class="history-event">' + namaEvent + '</div>' +
-          '<div class="history-judul">' + n.judul + '</div>' +
-          '<div class="history-pesan">' + n.pesan + '</div>' +
-          '<div class="history-time">📅 ' + tgl + '</div>' +
-        '</div>';
-      }).join('');
-    });
+      riwayatData = data || [];
+      renderHistory();
+    })
+    .catch(function() { renderHistory(); });
+}
+
+function renderHistory() {
+  var list = document.getElementById('historyList');
+  var btnHapusSemua = document.getElementById('btnHapusSemua');
+  var eventId = document.getElementById('pilihEvent').value;
+
+  if (!riwayatData.length) {
+    list.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="currentColor" style="width:40px;height:40px;opacity:0.3;"><path d="M18 11v2h4v-2h-4zm-2 6.61c.96.71 2.21 1.65 3.2 2.39.4-.53.8-1.07 1.2-1.6-.99-.74-2.24-1.68-3.2-2.4-.4.54-.8 1.08-1.2 1.61zM4 9c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h1v4h2v-4h1l5 3V6L8 9H4z"/></svg><div style="font-size:13px;color:var(--gray-500);">Belum ada broadcast</div></div>';
+    if (btnHapusSemua) btnHapusSemua.style.display = 'none';
+    return;
+  }
+
+  if (btnHapusSemua) btnHapusSemua.style.display = 'inline-flex';
+
+  list.innerHTML = riwayatData.map(function(n) {
+    var ev = events.find(function(e) { return e.id == n.eventId; });
+    var namaEvent = ev ? ev.nama : (n.namaEvent || '-');
+    var tgl = n.dibuatAt ? formatWaktu(n.dibuatAt) : '-';
+    return '<div class="history-item" id="riwayat-' + n.id + '">' +
+      '<div class="history-item-header">' +
+        '<div>' +
+          '<div class="history-event">📅 ' + namaEvent + '</div>' +
+          '<div class="history-judul">' + esc(n.judul) + '</div>' +
+        '</div>' +
+        '<button class="btn-hapus-riwayat" onclick="hapusRiwayat(' + n.id + ')">🗑️</button>' +
+      '</div>' +
+      '<div class="history-pesan">' + esc(n.pesan) + '</div>' +
+      '<div class="history-time">' + tgl + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function hapusRiwayat(id) {
+  if (!confirm('Hapus broadcast ini?')) return;
+  fetch('/api/notifikasi/' + id, { method: 'DELETE' })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      riwayatData = riwayatData.filter(function(n) { return n.id !== id; });
+      renderHistory();
+      showToast('🗑️ Broadcast dihapus', 'success');
+    })
+    .catch(function() { showToast('❌ Gagal menghapus', 'error'); });
+}
+
+function hapusSemua() {
+  if (!confirm('Hapus semua riwayat broadcast?')) return;
+  var ids = riwayatData.map(function(n) { return n.id; });
+  Promise.all(ids.map(function(id) {
+    return fetch('/api/notifikasi/' + id, { method: 'DELETE' });
+  }))
+  .then(function() {
+    riwayatData = [];
+    renderHistory();
+    showToast('🗑️ Semua riwayat dihapus', 'success');
+  })
+  .catch(function() { showToast('❌ Gagal menghapus', 'error'); });
+}
+
+function formatWaktu(raw) {
+  try {
+    var d = new Date(raw);
+    var now = new Date();
+    var ms = now - d;
+    var mnt = Math.floor(ms / 60000);
+    var jam = Math.floor(mnt / 60);
+    var hari = Math.floor(jam / 24);
+    if (mnt < 1)  return 'Baru saja';
+    if (mnt < 60) return mnt + ' menit lalu';
+    if (jam < 24) return jam + ' jam lalu';
+    if (hari < 7) return hari + ' hari lalu';
+    return d.toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+  } catch(e) { return raw ? raw.substring(0,10) : '-'; }
+}
+
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 function updatePreview() {
@@ -255,7 +342,7 @@ function kirimBroadcast() {
       document.getElementById('inputJudul').value = '';
       document.getElementById('inputPesan').value = '';
       updatePreview();
-      loadHistory(eventId);
+      loadHistory(document.getElementById('pilihEvent').value || null);
     } else {
       showToast('❌ ' + data.message, 'error');
     }

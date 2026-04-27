@@ -11,14 +11,9 @@ import java.util.stream.Collectors;
 @CrossOrigin(origins = "*")
 public class EventController {
 
-    @Autowired
-    private EventRepository eventRepository;
-
-    @Autowired
-    private PendaftaranRepository pendaftaranRepository;
-
-    @Autowired
-    private TiketRepository tiketRepository;
+    @Autowired private EventRepository eventRepository;
+    @Autowired private PendaftaranRepository pendaftaranRepository;
+    @Autowired private TiketRepository tiketRepository;
 
     @GetMapping
     public List<Event> getAllEvents() {
@@ -37,37 +32,29 @@ public class EventController {
 
     @PostMapping
     public Map<String, Object> createEvent(@RequestBody Map<String, Object> body) {
-        String nama = (String) body.get("nama");
-        String kategori = (String) body.get("kategori");
-        String tanggal = (String) body.get("tanggal");
-        String waktu = (String) body.get("waktu");
-        String lokasi = (String) body.get("lokasi");
-        String venue = (String) body.get("venue");
-        String deskripsi = (String) body.get("deskripsi");
+        String nama          = (String) body.get("nama");
+        String kategori      = (String) body.get("kategori");
+        String tanggal       = (String) body.get("tanggal");
+        String waktu         = (String) body.get("waktu");
+        String lokasi        = (String) body.get("lokasi");
+        String venue         = (String) body.get("venue");
+        String deskripsi     = (String) body.get("deskripsi");
         String penyelenggara = (String) body.get("penyelenggara");
-        String harga = (String) body.get("harga");
-        String tipeHarga = (String) body.get("tipeHarga");
-        int kapasitas = Integer.parseInt(body.get("kapasitas").toString());
-        Long createdBy = Long.parseLong(body.get("createdBy").toString());
+        String harga         = (String) body.get("harga");
+        String tipeHarga     = (String) body.get("tipeHarga");
+        int kapasitas        = Integer.parseInt(body.get("kapasitas").toString());
+        Long createdBy       = Long.parseLong(body.get("createdBy").toString());
 
         if (nama == null || nama.isBlank() || kategori == null || tanggal == null) {
             return Map.of("success", false, "message", "Field wajib tidak boleh kosong!");
         }
 
         Event ev = new Event();
-        ev.setNama(nama);
-        ev.setKategori(kategori);
-        ev.setTanggal(tanggal);
-        ev.setWaktu(waktu);
-        ev.setLokasi(lokasi);
-        ev.setVenue(venue);
-        ev.setDeskripsi(deskripsi);
-        ev.setPenyelenggara(penyelenggara);
-        ev.setHarga(harga);
-        ev.setTipeHarga(tipeHarga);
-        ev.setKapasitas(kapasitas);
-        ev.setTerisi(0);
-        ev.setCreatedBy(createdBy);
+        ev.setNama(nama); ev.setKategori(kategori); ev.setTanggal(tanggal);
+        ev.setWaktu(waktu); ev.setLokasi(lokasi); ev.setVenue(venue);
+        ev.setDeskripsi(deskripsi); ev.setPenyelenggara(penyelenggara);
+        ev.setHarga(harga); ev.setTipeHarga(tipeHarga);
+        ev.setKapasitas(kapasitas); ev.setTerisi(0); ev.setCreatedBy(createdBy);
         eventRepository.save(ev);
 
         return Map.of("success", true, "message", "Event berhasil dibuat!", "id", ev.getId());
@@ -156,32 +143,26 @@ public class EventController {
     @Transactional
     @PostMapping("/daftar")
     public Map<String, Object> daftarEvent(@RequestBody Map<String, Object> body) {
-        Long userId = Long.parseLong(body.get("userId").toString());
+        Long userId  = Long.parseLong(body.get("userId").toString());
         Long eventId = Long.parseLong(body.get("eventId").toString());
 
         Optional<Event> evOpt = eventRepository.findById(eventId);
         if (evOpt.isEmpty()) return Map.of("success", false, "message", "Event tidak ditemukan!");
 
         Event ev = evOpt.get();
-
-        if (ev.getTerisi() >= ev.getKapasitas()) {
+        if (ev.getTerisi() >= ev.getKapasitas())
             return Map.of("success", false, "message", "Event sudah penuh!");
-        }
-
-        if (pendaftaranRepository.existsByUserIdAndEventId(userId, eventId)) {
+        if (pendaftaranRepository.existsByUserIdAndEventId(userId, eventId))
             return Map.of("success", false, "message", "Kamu sudah terdaftar di event ini!");
-        }
 
-        String kode = "EVH-" + java.time.Year.now().getValue() + "-" + String.format("%03d", userId) + String.format("%03d", eventId);
+        String kode = "EVH-" + java.time.Year.now().getValue() + "-"
+                + String.format("%03d", userId) + String.format("%03d", eventId);
 
         Pendaftaran p = new Pendaftaran();
-        p.setUserId(userId);
-        p.setEventId(eventId);
-        p.setKodeTiket(kode);
-        p.setStatus("upcoming");
+        p.setUserId(userId); p.setEventId(eventId);
+        p.setKodeTiket(kode); p.setStatus("upcoming");
         pendaftaranRepository.save(p);
 
-        // Otomatis buat tiket setelah pendaftaran berhasil
         Tiket tiket = new Tiket();
         tiket.setPendaftaranId(p.getId());
         tiket.setKodeQr("QR-" + kode);
@@ -202,14 +183,10 @@ public class EventController {
             Optional<Event> evOpt = eventRepository.findById(p.getEventId());
             if (evOpt.isPresent()) {
                 Event ev = evOpt.get();
-                m.put("eventId", ev.getId());
-                m.put("nama", ev.getNama());
-                m.put("kategori", ev.getKategori());
-                m.put("tanggal", ev.getTanggal());
-                m.put("waktu", ev.getWaktu());
-                m.put("lokasi", ev.getLokasi());
-                m.put("venue", ev.getVenue());
-                m.put("penyelenggara", ev.getPenyelenggara());
+                m.put("eventId", ev.getId());         m.put("nama", ev.getNama());
+                m.put("kategori", ev.getKategori());  m.put("tanggal", ev.getTanggal());
+                m.put("waktu", ev.getWaktu());        m.put("lokasi", ev.getLokasi());
+                m.put("venue", ev.getVenue());        m.put("penyelenggara", ev.getPenyelenggara());
             }
             m.put("pendaftaranId", p.getId());
             m.put("kodeTiket", p.getKodeTiket());
@@ -223,15 +200,31 @@ public class EventController {
     @Transactional
     @PostMapping("/batal")
     public Map<String, Object> batalDaftar(@RequestBody Map<String, Object> body) {
-        Long userId = Long.parseLong(body.get("userId").toString());
+        Long userId  = Long.parseLong(body.get("userId").toString());
         Long eventId = Long.parseLong(body.get("eventId").toString());
 
-        if (!pendaftaranRepository.existsByUserIdAndEventId(userId, eventId)) {
+        // Cari data pendaftaran
+        Pendaftaran pendaftaran = pendaftaranRepository.findByUserIdAndEventId(userId, eventId);
+        if (pendaftaran == null)
             return Map.of("success", false, "message", "Data pendaftaran tidak ditemukan!");
+
+        // Blokir jika tiket sudah digunakan (sudah check-in)
+        List<Tiket> tikets = tiketRepository.findByPendaftaranId(pendaftaran.getId());
+        boolean sudahCheckIn = tikets.stream()
+            .anyMatch(t -> "digunakan".equals(t.getStatusTiket()));
+        if (sudahCheckIn) {
+            return Map.of("success", false, "message", "Pendaftaran tidak dapat dibatalkan karena kamu sudah melakukan check-in!");
         }
 
+        // Hapus tiket yang terkait
+        if (!tikets.isEmpty()) {
+            tiketRepository.deleteAll(tikets);
+        }
+
+        // Hapus pendaftaran dari database
         pendaftaranRepository.deleteByUserIdAndEventId(userId, eventId);
 
+        // Kurangi jumlah terisi di event
         Optional<Event> evOpt = eventRepository.findById(eventId);
         evOpt.ifPresent(ev -> {
             ev.setTerisi(Math.max(0, ev.getTerisi() - 1));
@@ -252,8 +245,6 @@ public class EventController {
         return Map.of("success", true, "total", list.size(), "peserta", list);
     }
 
-    // ===== SYNC field terisi dari data pendaftaran aktual =====
-    // Berguna jika data dihapus manual dari DB sehingga field terisi jadi tidak sinkron
     @Transactional
     @PostMapping("/sync-terisi")
     public Map<String, Object> syncTerisi() {

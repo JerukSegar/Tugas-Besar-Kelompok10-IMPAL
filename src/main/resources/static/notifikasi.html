@@ -101,6 +101,21 @@ a{text-decoration:none;}
 .toast.error{background:#991b1b;}
 @keyframes slideIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:none;}}
 .hidden{display:none!important;}
+
+/* ===== DELETE BUTTONS ===== */
+.notif-actions{display:flex;align-items:center;gap:8px;flex-shrink:0;margin-top:2px;}
+.btn-hapus{background:none;border:1px solid var(--gray-200);border-radius:var(--radius-sm);padding:4px 10px;font-size:11px;font-weight:600;color:var(--gray-400);cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.btn-hapus:hover{background:var(--danger-light);border-color:#fca5a5;color:var(--danger);}
+.btn-hapus-semua{padding:8px 16px;background:var(--danger-light);color:var(--danger);border-radius:var(--radius-sm);font-size:12px;font-weight:600;border:1px solid #fca5a5;cursor:pointer;transition:all 0.15s;}
+.btn-hapus-semua:hover{background:var(--danger);color:white;}
+.konfirm-hapus{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:999;display:flex;align-items:center;justify-content:center;}
+.konfirm-box{background:white;border-radius:var(--radius-lg);padding:28px 24px;max-width:360px;width:90%;text-align:center;box-shadow:var(--shadow-md);}
+.konfirm-box h3{font-size:16px;font-weight:700;margin-bottom:8px;}
+.konfirm-box p{font-size:13px;color:var(--gray-500);margin-bottom:20px;}
+.konfirm-btns{display:flex;gap:10px;justify-content:center;}
+.konfirm-btns button{padding:9px 20px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;}
+.konfirm-batal{background:var(--gray-100);color:var(--gray-600);border:none;}
+.konfirm-hapus-ok{background:var(--danger);color:white;border:none;}
 </style>
 </head>
 <body>
@@ -161,6 +176,7 @@ a{text-decoration:none;}
       <p id="subTitle">Semua notifikasi dari event yang kamu ikuti</p>
     </div>
     <div class="topbar-right">
+      <button class="btn-hapus-semua" onclick="konfirmasiHapusSemua()">&#x1F5D1; Hapus Semua</button>
       <button class="btn-mark-all" onclick="tandaiSemuaDibaca()">&#x2713; Tandai semua dibaca</button>
     </div>
   </div>
@@ -238,7 +254,7 @@ document.getElementById('navBroadcast').classList.add('hidden');
 // ===== STATE =====
 var semuaNotif  = [];
 var filterAktif = 'semua';
-// Sinkron read-state dengan dashboard (pakai localStorage yang sama)
+// readIds: sinkron dengan dashboard via localStorage
 var readIds = new Set(JSON.parse(localStorage.getItem('readNotifIds') || '[]'));
 
 function saveReadIds() {
@@ -253,13 +269,22 @@ function loadNotifikasi() {
       return r.json();
     })
     .then(function(data) {
-      document.getElementById('skeletonArea').remove();
-      semuaNotif = data || [];
+      var skelArea = document.getElementById('skeletonArea');
+      if (skelArea) skelArea.remove();
+      semuaNotif = Array.isArray(data) ? data : [];
+      // Sinkronkan readIds dengan field sudahDibaca dari API
+      semuaNotif.forEach(function(n) {
+        if (n.sudahDibaca || n.dibaca || n.isRead) {
+          readIds.add(String(n.id));
+        }
+      });
+      saveReadIds();
       updateCounter();
       renderList();
     })
     .catch(function() {
-      document.getElementById('skeletonArea').remove();
+      var skelArea = document.getElementById('skeletonArea');
+      if (skelArea) skelArea.remove();
       document.getElementById('notifList').innerHTML =
         '<div class="empty-state">' +
           '<span class="empty-icon">&#x26A0;&#xFE0F;</span>' +
@@ -292,7 +317,7 @@ function updateCounter() {
 function renderList() {
   var list = document.getElementById('notifList');
 
-  var data = semuaNotif.slice(); // copy
+  var data = semuaNotif.slice();
   if (filterAktif === 'belum') {
     data = semuaNotif.filter(function(n) { return !readIds.has(String(n.id)); });
   } else if (filterAktif === 'sudah') {
@@ -317,19 +342,22 @@ function renderList() {
 
   list.innerHTML = data.map(function(n) {
     var isRead = readIds.has(String(n.id));
-    var waktu  = formatWaktu(n.dibuatAt);
+    var waktu  = formatWaktu(n.dibuatAt || n.createdAt || n.waktu);
     return (
-      '<div class="notif-card' + (isRead ? '' : ' unread') + '" onclick="tandaiDibaca(' + n.id + ')" id="notifCard-' + n.id + '">' +
-        '<div class="notif-icon">&#x1F4E3;</div>' +
-        '<div class="notif-body">' +
+      '<div class="notif-card' + (isRead ? '' : ' unread') + '" id="notifCard-' + n.id + '">' +
+        '<div class="notif-icon" onclick="tandaiDibaca(' + n.id + ')">&#x1F4E3;</div>' +
+        '<div class="notif-body" onclick="tandaiDibaca(' + n.id + ')" style="cursor:pointer;">' +
           '<div class="notif-header-row">' +
             '<div class="notif-judul">' + esc(n.judul) + '</div>' +
             '<div class="notif-time">' + waktu + '</div>' +
           '</div>' +
-          '<span class="notif-event-tag">&#x1F4C5; ' + esc(n.namaEvent || '-') + '</span>' +
-          '<div class="notif-pesan">' + esc(n.pesan) + '</div>' +
+          '<span class="notif-event-tag">&#x1F4C5; ' + esc(n.namaEvent || n.nama_event || '-') + '</span>' +
+          '<div class="notif-pesan">' + esc(n.pesan || n.isi || '') + '</div>' +
         '</div>' +
-        (isRead ? '' : '<div class="unread-dot" id="dot-' + n.id + '"></div>') +
+        '<div class="notif-actions">' +
+          (isRead ? '' : '<div class="unread-dot" id="dot-' + n.id + '"></div>') +
+          '<button class="btn-hapus" onclick="hapusNotif(' + n.id + ', event)" title="Hapus notifikasi">&#x1F5D1;</button>' +
+        '</div>' +
       '</div>'
     );
   }).join('');
@@ -351,37 +379,105 @@ function tandaiDibaca(id) {
   if (readIds.has(String(id))) return;
   readIds.add(String(id));
   saveReadIds();
-  updateCounter();
 
-  // Update DOM langsung tanpa re-render
+  // Tandai ke API juga
+  fetch('/api/notifikasi/' + id + '/baca', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({userId: parseInt(idUser)}) }).catch(function(){});
+
+  updateCounter();
   var card = document.getElementById('notifCard-' + id);
   if (card) {
     card.classList.remove('unread');
     var dot = document.getElementById('dot-' + id);
     if (dot) dot.remove();
   }
-
   if (filterAktif === 'belum') {
-    // Tunggu sebentar biar user bisa lihat, lalu hapus dari list
     setTimeout(function() { renderList(); }, 400);
   }
 }
 
 function tandaiSemuaDibaca() {
-  if (semuaNotif.length === 0) {
-    showToast('Tidak ada notifikasi', 'error');
-    return;
-  }
+  if (semuaNotif.length === 0) { showToast('Tidak ada notifikasi', 'error'); return; }
   var belum = semuaNotif.filter(function(n) { return !readIds.has(String(n.id)); }).length;
-  if (belum === 0) {
-    showToast('Semua notifikasi sudah dibaca', 'error');
-    return;
-  }
+  if (belum === 0) { showToast('Semua notifikasi sudah dibaca', 'error'); return; }
   semuaNotif.forEach(function(n) { readIds.add(String(n.id)); });
   saveReadIds();
+  fetch('/api/notifikasi/baca-semua/' + idUser, { method: 'PUT' }).catch(function(){});
   updateCounter();
   renderList();
   showToast('&#x2705; Semua ' + semuaNotif.length + ' notifikasi ditandai dibaca', 'success');
+}
+
+// ===== HAPUS NOTIFIKASI =====
+function hapusNotif(id, e) {
+  if (e) e.stopPropagation();
+  // Optimistic: langsung hapus dari DOM dan state
+  semuaNotif = semuaNotif.filter(function(n) { return n.id !== id; });
+  readIds.delete(String(id));
+  saveReadIds();
+  updateCounter();
+  renderList();
+  // Hit API
+  fetch('/api/notifikasi/' + id + '?userId=' + idUser, { method: 'DELETE' })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data && data.success === false) {
+        showToast('&#x26A0;&#xFE0F; Gagal menghapus notifikasi', 'error');
+        loadNotifikasi(); // reload jika gagal
+      } else {
+        showToast('&#x1F5D1; Notifikasi dihapus', 'success');
+      }
+    })
+    .catch(function() {
+      showToast('&#x26A0;&#xFE0F; Gagal menghapus notifikasi', 'error');
+      loadNotifikasi();
+    });
+}
+
+function konfirmasiHapusSemua() {
+  if (semuaNotif.length === 0) { showToast('Tidak ada notifikasi untuk dihapus', 'error'); return; }
+  // Tampilkan modal konfirmasi
+  var overlay = document.createElement('div');
+  overlay.className = 'konfirm-hapus';
+  overlay.id = 'konfirmOverlay';
+  overlay.innerHTML =
+    '<div class="konfirm-box">' +
+      '<h3>&#x1F5D1; Hapus Semua Notifikasi?</h3>' +
+      '<p>Semua ' + semuaNotif.length + ' notifikasi akan dihapus permanen dan tidak bisa dikembalikan.</p>' +
+      '<div class="konfirm-btns">' +
+        '<button class="konfirm-batal" onclick="tutupKonfirm()">Batal</button>' +
+        '<button class="konfirm-hapus-ok" onclick="hapusSemua()">Ya, Hapus Semua</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(overlay);
+}
+
+function tutupKonfirm() {
+  var el = document.getElementById('konfirmOverlay');
+  if (el) el.remove();
+}
+
+function hapusSemua() {
+  tutupKonfirm();
+  var total = semuaNotif.length;
+  semuaNotif = [];
+  readIds.clear();
+  saveReadIds();
+  updateCounter();
+  renderList();
+  fetch('/api/notifikasi/hapus-semua/' + idUser, { method: 'DELETE' })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data && data.success === false) {
+        showToast('&#x26A0;&#xFE0F; Gagal menghapus', 'error');
+        loadNotifikasi();
+      } else {
+        showToast('&#x1F5D1; ' + total + ' notifikasi dihapus', 'success');
+      }
+    })
+    .catch(function() {
+      showToast('&#x26A0;&#xFE0F; Gagal menghapus', 'error');
+      loadNotifikasi();
+    });
 }
 
 // ===== FORMAT WAKTU =====
