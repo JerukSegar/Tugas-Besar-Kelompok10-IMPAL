@@ -73,46 +73,79 @@ public class EventController {
         return Map.of("success", true, "message", "Event berhasil dibuat!", "id", ev.getId());
     }
 
+@Transactional
     @PutMapping("/{id}")
     public Map<String, Object> updateEvent(@PathVariable Long id, @RequestBody Map<String, Object> body) {
         Optional<Event> evOpt = eventRepository.findById(id);
-        if (evOpt.isEmpty()) return Map.of("success", false, "message", "Event tidak ditemukan!");
-
-        Event ev = evOpt.get();
-        Long createdBy = Long.parseLong(body.get("createdBy").toString());
-        if (!ev.getCreatedBy().equals(createdBy)) {
-            return Map.of("success", false, "message", "Kamu tidak berhak mengedit event ini!");
+        if (evOpt.isEmpty()) {
+            return Map.of("success", false, "message", "Event tidak ditemukan!");
         }
 
-        if (body.containsKey("nama")) ev.setNama((String) body.get("nama"));
-        if (body.containsKey("kategori")) ev.setKategori((String) body.get("kategori"));
-        if (body.containsKey("tanggal")) ev.setTanggal((String) body.get("tanggal"));
-        if (body.containsKey("waktu")) ev.setWaktu((String) body.get("waktu"));
-        if (body.containsKey("lokasi")) ev.setLokasi((String) body.get("lokasi"));
-        if (body.containsKey("venue")) ev.setVenue((String) body.get("venue"));
-        if (body.containsKey("deskripsi")) ev.setDeskripsi((String) body.get("deskripsi"));
-        if (body.containsKey("penyelenggara")) ev.setPenyelenggara((String) body.get("penyelenggara"));
-        if (body.containsKey("harga")) ev.setHarga((String) body.get("harga"));
-        if (body.containsKey("tipeHarga")) ev.setTipeHarga((String) body.get("tipeHarga"));
-        if (body.containsKey("kapasitas")) ev.setKapasitas(Integer.parseInt(body.get("kapasitas").toString()));
+        Event ev = evOpt.get();
+        
+        try {
+            // Update field dasar jika ada dalam request body
+            if (body.containsKey("nama"))          ev.setNama(body.get("nama").toString());
+            if (body.containsKey("kategori"))      ev.setKategori(body.get("kategori").toString());
+            if (body.containsKey("tanggal"))       ev.setTanggal(body.get("tanggal").toString());
+            if (body.containsKey("waktu"))         ev.setWaktu(body.get("waktu").toString());
+            if (body.containsKey("lokasi"))        ev.setLokasi(body.get("lokasi").toString());
+            if (body.containsKey("venue"))         ev.setVenue(body.get("venue").toString());
+            if (body.containsKey("deskripsi"))     ev.setDeskripsi(body.get("deskripsi").toString());
+            if (body.containsKey("penyelenggara")) ev.setPenyelenggara(body.get("penyelenggara").toString());
+            if (body.containsKey("harga"))         ev.setHarga(body.get("harga").toString());
+            if (body.containsKey("tipeHarga"))     ev.setTipeHarga(body.get("tipeHarga").toString());
+            
+            // Validasi khusus untuk kapasitas
+            if (body.containsKey("kapasitas")) {
+                int newKapasitas = Integer.parseInt(body.get("kapasitas").toString());
+                // Proteksi: Kapasitas baru tidak boleh lebih kecil dari jumlah peserta yang sudah mendaftar
+                if (newKapasitas < ev.getTerisi()) {
+                    return Map.of(
+                        "success", false, 
+                        "message", "Gagal update! Kapasitas baru (" + newKapasitas + 
+                        ") lebih kecil dari jumlah peserta yang sudah mendaftar (" + ev.getTerisi() + ")."
+                    );
+                }
+                ev.setKapasitas(newKapasitas);
+            }
 
-        eventRepository.save(ev);
-        return Map.of("success", true, "message", "Event berhasil diperbarui!");
+            eventRepository.save(ev);
+            return Map.of("success", true, "message", "Data event berhasil diperbarui!");
+
+        } catch (Exception e) {
+            return Map.of("success", false, "message", "Error saat update: " + e.getMessage());
+        }
     }
 
+@Transactional
     @DeleteMapping("/{id}")
-    public Map<String, Object> deleteEvent(@PathVariable Long id, @RequestBody Map<String, Object> body) {
+    public Map<String, Object> deleteEvent(@PathVariable Long id) {
         Optional<Event> evOpt = eventRepository.findById(id);
-        if (evOpt.isEmpty()) return Map.of("success", false, "message", "Event tidak ditemukan!");
-
-        Event ev = evOpt.get();
-        Long createdBy = Long.parseLong(body.get("createdBy").toString());
-        if (!ev.getCreatedBy().equals(createdBy)) {
-            return Map.of("success", false, "message", "Kamu tidak berhak menghapus event ini!");
+        if (evOpt.isEmpty()) {
+            return Map.of("success", false, "message", "Event tidak ditemukan!");
         }
 
-        eventRepository.delete(ev);
-        return Map.of("success", true, "message", "Event berhasil dihapus!");
+        // LOGIKA PROTEKSI TAMBAHAN:
+        // Cek apakah ada data pendaftaran yang merujuk ke event ini
+        boolean hasParticipants = pendaftaranRepository.findAll()
+                .stream()
+                .anyMatch(p -> p.getEventId().equals(id));
+
+        if (hasParticipants) {
+            return Map.of(
+                "success", false, 
+                "message", "Event tidak bisa dihapus karena sudah ada peserta yang terdaftar! " +
+                "Hapus semua data pendaftaran terkait terlebih dahulu untuk menjaga integritas data."
+            );
+        }
+
+        try {
+            eventRepository.deleteById(id);
+            return Map.of("success", true, "message", "Event berhasil dihapus secara permanen.");
+        } catch (Exception e) {
+            return Map.of("success", false, "message", "Gagal menghapus event: " + e.getMessage());
+        }
     }
 
     @GetMapping("/kelola/{userId}")
@@ -185,6 +218,8 @@ public class EventController {
         }).collect(Collectors.toList());
     }
 
+
+    
     @Transactional
     @PostMapping("/batal")
     public Map<String, Object> batalDaftar(@RequestBody Map<String, Object> body) {
