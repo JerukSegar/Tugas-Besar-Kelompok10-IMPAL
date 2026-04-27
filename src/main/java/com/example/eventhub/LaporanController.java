@@ -14,34 +14,39 @@ public class LaporanController {
     @Autowired private CheckInRepository checkInRepository;
     @Autowired private TiketRepository tiketRepository;
 
-    @GetMapping("/event/{eventId}")
+@GetMapping("/event/{eventId}")
     public Map<String, Object> getLaporanByEvent(@PathVariable Long eventId) {
         Optional<Event> evOpt = eventRepository.findById(eventId);
         if (evOpt.isEmpty()) {
             return Map.of("success", false, "message", "Event tidak ditemukan!");
         }
 
-        Event ev = evOpt.get();
-
+        // Hitung total pendaftar
         List<Pendaftaran> pendaftaranList = pendaftaranRepository.findAll()
             .stream().filter(p -> p.getEventId().equals(eventId)).toList();
         int totalPendaftar = pendaftaranList.size();
 
+        // Hitung total kehadiran berdasarkan tiket yang sudah digunakan
         int totalHadir = 0;
         for (Pendaftaran p : pendaftaranList) {
             List<Tiket> tikets = tiketRepository.findByPendaftaranId(p.getId());
             totalHadir += tikets.stream().filter(t -> t.getStatusTiket().equals("digunakan")).count();
         }
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("success",         true);
-        result.put("eventId",         eventId);
-        result.put("namaEvent",       ev.getNama());
-        result.put("totalPendaftar",  totalPendaftar);
-        result.put("totalHadir",      totalHadir);
-        result.put("kapasitas",       ev.getKapasitas());
-        result.put("persentaseHadir", totalPendaftar > 0 ? (totalHadir * 100 / totalPendaftar) + "%" : "0%");
-        return result;
+        // PERBAIKAN: Simpan hasil perhitungan ke database sesuai Sequence Diagram
+        Laporan laporan = new Laporan();
+        laporan.setEventId(eventId);
+        laporan.setTotalPendaftar(totalPendaftar);
+        laporan.setTotalHadir(totalHadir);
+        laporanRepository.save(laporan);
+
+        return Map.of(
+            "success",        true,
+            "message",        "Laporan berhasil dihitung dan disimpan!",
+            "totalPendaftar", totalPendaftar,
+            "totalHadir",     totalHadir,
+            "laporanId",      laporan.getId()
+        );
     }
 
     @GetMapping("/semua")

@@ -120,6 +120,7 @@ public class EventController {
         return eventRepository.findByCreatedBy(userId);
     }
 
+    @Transactional
     @PostMapping("/daftar")
     public Map<String, Object> daftarEvent(@RequestBody Map<String, Object> body) {
         Long userId = Long.parseLong(body.get("userId").toString());

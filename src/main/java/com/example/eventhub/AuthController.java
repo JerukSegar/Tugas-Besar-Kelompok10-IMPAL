@@ -78,7 +78,7 @@ public class AuthController {
 
     @PutMapping("/update/{id}")
     public Map<String, Object> updateProfile(@PathVariable Long id,
-                                             @RequestBody Map<String, String> body) {
+        @RequestBody Map<String, String> body) {
         Optional<User> userOpt = userRepository.findById(id);
         if (userOpt.isEmpty()) {
             return Map.of("success", false, "message", "User tidak ditemukan!");
