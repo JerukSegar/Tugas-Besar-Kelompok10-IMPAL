@@ -2,7 +2,9 @@ package com.example.eventhub;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
-import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 
 @RestController
 @RequestMapping("/api/tiket")
@@ -15,6 +17,48 @@ public class TiketController {
     @Autowired private SertifikatRepository sertifikatRepository;
     @Autowired private EventRepository eventRepository;
     @Autowired private UserRepository userRepository;
+
+    // ── Helper: parse waktu selesai dari format "13.00–14.00 WIB" ─────────────
+    private LocalTime parseWaktuSelesai(String waktu) {
+        try {
+            if (waktu == null || waktu.isBlank()) return null;
+            String[] parts = waktu.split("[\\u2013\\-]");
+            if (parts.length < 2) return null;
+            String selesaiStr = parts[1].trim()
+                    .replace(".", ":")
+                    .replaceAll("[^0-9:]", "")
+                    .trim();
+            return LocalTime.parse(selesaiStr, DateTimeFormatter.ofPattern("HH:mm"));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    // ── Helper: parse tanggal dari format "2026-05-10" ────────────────────────
+    private LocalDate parseTanggal(String tanggal) {
+        try {
+            if (tanggal == null || tanggal.isBlank()) return null;
+            return LocalDate.parse(tanggal.trim(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    // ── Helper: cek apakah event sudah selesai ────────────────────────────────
+    private boolean isEventSudahSelesai(Event ev) {
+        try {
+            LocalDate tglEvent = parseTanggal(ev.getTanggal());
+            LocalTime selesai  = parseWaktuSelesai(ev.getWaktu());
+            if (tglEvent == null || selesai == null) return false;
+            LocalDate today    = LocalDate.now();
+            LocalTime sekarang = LocalTime.now();
+            if (today.isAfter(tglEvent)) return true;
+            if (today.isEqual(tglEvent) && sekarang.isAfter(selesai)) return true;
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 
     @GetMapping("/pendaftaran/{pendaftaranId}")
     public Map<String, Object> getTiketByPendaftaran(@PathVariable Long pendaftaranId) {
@@ -61,93 +105,88 @@ public class TiketController {
         return result;
     }
 
-@Transactional
     @PostMapping("/checkin")
     public Map<String, Object> checkIn(@RequestBody Map<String, Object> body) {
-        // 1. Validasi input awal untuk mencegah NullPointerException saat memanggil .toString()
-        if (body.get("kodeQr") == null || body.get("penyelenggaraId") == null) {
-            return Map.of("success", false, "message", "Field kodeQr atau penyelenggaraId tidak ditemukan dalam request!");
+        String kodeQr        = body.get("kodeQr").toString();
+        Long penyelenggaraId = Long.parseLong(body.get("penyelenggaraId").toString());
+
+        Optional<Tiket> tiketOpt = tiketRepository.findByKodeQr(kodeQr);
+        if (tiketOpt.isEmpty()) {
+            return Map.of("success", false, "message", "Tiket tidak ditemukan!");
         }
 
-        try {
-            // 2. Konversi data dari body request
-            String kodeQr = body.get("kodeQr").toString();
-            Long penyelenggaraId = Long.parseLong(body.get("penyelenggaraId").toString());
+        Tiket tiket = tiketOpt.get();
 
-            // 3. Cari tiket berdasarkan kode QR yang dikirim
-            Optional<Tiket> tiketOpt = tiketRepository.findByKodeQr(kodeQr);
-            if (tiketOpt.isEmpty()) {
-                return Map.of("success", false, "message", "Tiket tidak ditemukan!");
-            }
+        if (tiket.getStatusTiket().equals("digunakan")) {
+            return Map.of("success", false, "message", "Tiket sudah digunakan!");
+        }
+        if (tiket.getStatusTiket().equals("kadaluarsa")) {
+            return Map.of("success", false, "message", "Tiket sudah kadaluarsa!");
+        }
+        if (checkInRepository.existsByTiketId(tiket.getId())) {
+            return Map.of("success", false, "message", "Peserta sudah check-in!");
+        }
 
-            Tiket tiket = tiketOpt.get();
-
-            // 4. Validasi status tiket agar tidak terjadi check-in ganda
-            if ("digunakan".equals(tiket.getStatusTiket())) {
-                return Map.of("success", false, "message", "Tiket sudah digunakan!");
-            }
-            if ("kadaluarsa".equals(tiket.getStatusTiket())) {
-                return Map.of("success", false, "message", "Tiket sudah kadaluarsa!");
-            }
-
-            // 5. Cek keberadaan data di tabel check-in untuk keamanan ekstra
-            if (checkInRepository.existsByTiketId(tiket.getId())) {
-                return Map.of("success", false, "message", "Peserta sudah terdata melakukan check-in!");
-            }
-
-            // 6. Simpan data kehadiran ke tabel check_in
-            CheckIn checkIn = new CheckIn();
-            checkIn.setTiketId(tiket.getId());
-            checkIn.setPenyelenggaraId(penyelenggaraId);
-            checkInRepository.save(checkIn);
-
-            // 7. Ubah status tiket menjadi digunakan
-            tiket.setStatusTiket("digunakan");
-            tiketRepository.save(tiket);
-
-            // 8. Logika pembuatan sertifikat otomatis setelah sukses check-in
-            String kodeSertifikat = null;
-            Optional<Pendaftaran> pendOpt = pendaftaranRepository.findById(tiket.getPendaftaranId());
-
-            if (pendOpt.isPresent()) {
-                Pendaftaran pend = pendOpt.get();
-                Long userId = pend.getUserId();
-                Long eventId = pend.getEventId();
-
-                if (!sertifikatRepository.existsByUserIdAndEventId(userId, eventId)) {
-                    Optional<User> userOpt = userRepository.findById(userId);
-                    Optional<Event> evOpt = eventRepository.findById(eventId);
-
-                    if (userOpt.isPresent() && evOpt.isPresent()) {
-                        User user = userOpt.get();
-                        Event ev = evOpt.get();
-                        String kode = "CERT-" + eventId + "-" + userId + "-" + java.time.Year.now().getValue();
-
-                        Sertifikat sert = new Sertifikat();
-                        sert.setUserId(userId);
-                        sert.setEventId(eventId);
-                        sert.setKodeSertifikat(kode);
-                        sert.setNamaPeserta(user.getNama());
-                        sert.setNamaEvent(ev.getNama());
-                        sert.setTanggalEvent(ev.getTanggal());
-                        sert.setPenyelenggara(ev.getPenyelenggara());
-                        sertifikatRepository.save(sert);
-                        kodeSertifikat = kode;
-                    }
+        // ── BLOKIR check-in jika event sudah selesai ──────────────────────────
+        Optional<Pendaftaran> pendOpt = pendaftaranRepository.findById(tiket.getPendaftaranId());
+        if (pendOpt.isPresent()) {
+            Long eventId = pendOpt.get().getEventId();
+            Optional<Event> evOpt = eventRepository.findById(eventId);
+            if (evOpt.isPresent()) {
+                Event ev = evOpt.get();
+                if (isEventSudahSelesai(ev)) {
+                    return Map.of("success", false,
+                        "message", "Check-in gagal! Waktu event sudah selesai (" + ev.getWaktu() + ").");
                 }
             }
-
-            Map<String, Object> result = new HashMap<>();
-            result.put("success", true);
-            result.put("message", "Check-in berhasil! Sertifikat telah diterbitkan.");
-            if (kodeSertifikat != null) result.put("kodeSertifikat", kodeSertifikat);
-            return result;
-
-        } catch (NumberFormatException e) {
-            return Map.of("success", false, "message", "ID penyelenggara harus berupa angka valid!");
-        } catch (Exception e) {
-            return Map.of("success", false, "message", "Gagal memproses check-in: " + e.getMessage());
         }
+
+        // Simpan check-in
+        CheckIn checkIn = new CheckIn();
+        checkIn.setTiketId(tiket.getId());
+        checkIn.setPenyelenggaraId(penyelenggaraId);
+        checkInRepository.save(checkIn);
+
+        // Update status tiket
+        tiket.setStatusTiket("digunakan");
+        tiketRepository.save(tiket);
+
+        // AUTO GENERATE SERTIFIKAT setelah check-in
+        String kodeSertifikat = null;
+        if (pendOpt.isPresent()) {
+            Pendaftaran pend = pendOpt.get();
+            Long userId  = pend.getUserId();
+            Long eventId = pend.getEventId();
+
+            if (!sertifikatRepository.existsByUserIdAndEventId(userId, eventId)) {
+                Optional<User>  userOpt = userRepository.findById(userId);
+                Optional<Event> evOpt2  = eventRepository.findById(eventId);
+
+                if (userOpt.isPresent() && evOpt2.isPresent()) {
+                    User  user = userOpt.get();
+                    Event ev   = evOpt2.get();
+                    String kode = "CERT-" + eventId + "-" + userId + "-"
+                        + java.time.Year.now().getValue();
+
+                    Sertifikat sert = new Sertifikat();
+                    sert.setUserId(userId);
+                    sert.setEventId(eventId);
+                    sert.setKodeSertifikat(kode);
+                    sert.setNamaPeserta(user.getNama());
+                    sert.setNamaEvent(ev.getNama());
+                    sert.setTanggalEvent(ev.getTanggal());
+                    sert.setPenyelenggara(ev.getPenyelenggara());
+                    sertifikatRepository.save(sert);
+                    kodeSertifikat = kode;
+                }
+            }
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", true);
+        result.put("message", "Check-in berhasil! Sertifikat telah digenerate.");
+        if (kodeSertifikat != null) result.put("kodeSertifikat", kodeSertifikat);
+        return result;
     }
 
     @GetMapping("/semua")

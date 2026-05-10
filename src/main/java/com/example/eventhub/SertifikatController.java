@@ -11,17 +11,14 @@ public class SertifikatController {
     @Autowired private SertifikatRepository sertifikatRepository;
     @Autowired private EventRepository eventRepository;
     @Autowired private UserRepository userRepository;
-    @Autowired private CheckInRepository checkInRepository;
     @Autowired private TiketRepository tiketRepository;
     @Autowired private PendaftaranRepository pendaftaranRepository;
 
-    // ===== GENERATE sertifikat setelah check-in =====
     @PostMapping("/generate")
     public Map<String, Object> generate(@RequestBody Map<String, Object> body) {
         Long userId  = Long.parseLong(body.get("userId").toString());
         Long eventId = Long.parseLong(body.get("eventId").toString());
 
-        // Cek apakah sudah punya sertifikat
         if (sertifikatRepository.existsByUserIdAndEventId(userId, eventId)) {
             Optional<Sertifikat> existing = sertifikatRepository.findByUserIdAndEventId(userId, eventId);
             Map<String, Object> result = new HashMap<>();
@@ -31,7 +28,6 @@ public class SertifikatController {
             return result;
         }
 
-        // Cek apakah sudah check-in
         List<Pendaftaran> pendList = pendaftaranRepository.findByUserId(userId)
             .stream().filter(p -> p.getEventId().equals(eventId)).toList();
 
@@ -39,27 +35,29 @@ public class SertifikatController {
             return Map.of("success", false, "message", "Kamu belum terdaftar di event ini!");
         }
 
-        Pendaftaran pend = pendList.get(0);
-        List<Tiket> tikets = tiketRepository.findByPendaftaranId(pend.getId());
-        boolean sudahCheckIn = tikets.stream()
-            .anyMatch(t -> t.getStatusTiket().equals("digunakan"));
+        boolean sudahCheckIn = false;
+        for (Pendaftaran pend : pendList) {
+            List<Tiket> tikets = tiketRepository.findByPendaftaranId(pend.getId());
+            if (tikets.stream().anyMatch(t -> "digunakan".equals(t.getStatusTiket()))) {
+                sudahCheckIn = true;
+                break;
+            }
+        }
 
         if (!sudahCheckIn) {
             return Map.of("success", false, "message", "Sertifikat hanya tersedia setelah check-in!");
         }
 
-        // Ambil data user dan event
         Optional<User> userOpt = userRepository.findById(userId);
         Optional<Event> evOpt  = eventRepository.findById(eventId);
 
         if (userOpt.isEmpty() || evOpt.isEmpty()) {
-            return Map.of("success", false, "message", "Data tidak ditemukan!");
+            return Map.of("success", false, "message", "Data user atau event tidak ditemukan!");
         }
 
         User user = userOpt.get();
         Event ev  = evOpt.get();
 
-        // Generate kode sertifikat unik
         String kode = "CERT-" + ev.getId() + "-" + userId + "-"
             + java.time.Year.now().getValue();
 
@@ -80,13 +78,11 @@ public class SertifikatController {
         return result;
     }
 
-    // ===== GET sertifikat milik user =====
     @GetMapping("/user/{userId}")
     public List<Sertifikat> getByUser(@PathVariable Long userId) {
         return sertifikatRepository.findByUserId(userId);
     }
 
-    // ===== GET sertifikat by kode =====
     @GetMapping("/kode/{kode}")
     public Map<String, Object> getByKode(@PathVariable String kode) {
         Optional<Sertifikat> sertOpt = sertifikatRepository.findByKodeSertifikat(kode);
@@ -99,7 +95,6 @@ public class SertifikatController {
         return result;
     }
 
-    // ===== GET sertifikat by event (untuk penyelenggara) =====
     @GetMapping("/event/{eventId}")
     public List<Sertifikat> getByEvent(@PathVariable Long eventId) {
         return sertifikatRepository.findByEventId(eventId);
