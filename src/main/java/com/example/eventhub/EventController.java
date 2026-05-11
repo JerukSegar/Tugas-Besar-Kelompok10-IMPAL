@@ -18,77 +18,56 @@ public class EventController {
     @Autowired private PendaftaranRepository pendaftaranRepository;
     @Autowired private TiketRepository tiketRepository;
 
-    // ── Helper: parse waktu mulai dari format "13.00–14.00 WIB" ──────────────
     private LocalTime parseWaktuMulai(String waktu) {
         try {
             if (waktu == null || waktu.isBlank()) return null;
-            // Ambil bagian sebelum karakter – atau -
             String[] parts = waktu.split("[\\u2013\\-]");
-            String mulaiStr = parts[0].trim().replace(".", ":");
-            // Hapus suffix seperti " WIB" jika ada di bagian mulai
-            mulaiStr = mulaiStr.replaceAll("[^0-9:]", "").trim();
+            String mulaiStr = parts[0].trim().replace(".", ":").replaceAll("[^0-9:]", "").trim();
             return LocalTime.parse(mulaiStr, DateTimeFormatter.ofPattern("HH:mm"));
-        } catch (Exception e) {
-            return null;
-        }
+        } catch (Exception e) { return null; }
     }
 
-    // ── Helper: parse waktu selesai dari format "13.00–14.00 WIB" ─────────────
     private LocalTime parseWaktuSelesai(String waktu) {
         try {
             if (waktu == null || waktu.isBlank()) return null;
             String[] parts = waktu.split("[\\u2013\\-]");
             if (parts.length < 2) return null;
-            String selesaiStr = parts[1].trim()
-                    .replace(".", ":")
-                    .replaceAll("[^0-9:]", "")
-                    .trim();
+            String selesaiStr = parts[1].trim().replace(".", ":").replaceAll("[^0-9:]", "").trim();
             return LocalTime.parse(selesaiStr, DateTimeFormatter.ofPattern("HH:mm"));
-        } catch (Exception e) {
-            return null;
-        }
+        } catch (Exception e) { return null; }
     }
 
-    // ── Helper: parse tanggal dari format "2026-05-10" ────────────────────────
     private LocalDate parseTanggal(String tanggal) {
         try {
             if (tanggal == null || tanggal.isBlank()) return null;
             return LocalDate.parse(tanggal.trim(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        } catch (Exception e) {
-            return null;
-        }
+        } catch (Exception e) { return null; }
     }
 
-    // ── Helper: cek apakah event sudah mulai ─────────────────────────────────
     private boolean isEventSudahMulai(Event ev) {
         try {
-            LocalDate tglEvent  = parseTanggal(ev.getTanggal());
-            LocalTime mulai     = parseWaktuMulai(ev.getWaktu());
+            LocalDate tglEvent = parseTanggal(ev.getTanggal());
+            LocalTime mulai    = parseWaktuMulai(ev.getWaktu());
             if (tglEvent == null || mulai == null) return false;
-            LocalDate today     = LocalDate.now();
-            LocalTime sekarang  = LocalTime.now();
+            LocalDate today    = LocalDate.now();
+            LocalTime sekarang = LocalTime.now();
             if (today.isAfter(tglEvent)) return true;
             if (today.isEqual(tglEvent) && sekarang.isAfter(mulai)) return true;
             return false;
-        } catch (Exception e) {
-            return false;
-        }
+        } catch (Exception e) { return false; }
     }
 
-    // ── Helper: cek apakah event sudah selesai ────────────────────────────────
     private boolean isEventSudahSelesai(Event ev) {
         try {
-            LocalDate tglEvent  = parseTanggal(ev.getTanggal());
-            LocalTime selesai   = parseWaktuSelesai(ev.getWaktu());
+            LocalDate tglEvent = parseTanggal(ev.getTanggal());
+            LocalTime selesai  = parseWaktuSelesai(ev.getWaktu());
             if (tglEvent == null || selesai == null) return false;
-            LocalDate today     = LocalDate.now();
-            LocalTime sekarang  = LocalTime.now();
+            LocalDate today    = LocalDate.now();
+            LocalTime sekarang = LocalTime.now();
             if (today.isAfter(tglEvent)) return true;
             if (today.isEqual(tglEvent) && sekarang.isAfter(selesai)) return true;
             return false;
-        } catch (Exception e) {
-            return false;
-        }
+        } catch (Exception e) { return false; }
     }
 
     @GetMapping
@@ -121,9 +100,8 @@ public class EventController {
         int kapasitas        = Integer.parseInt(body.get("kapasitas").toString());
         Long createdBy       = Long.parseLong(body.get("createdBy").toString());
 
-        if (nama == null || nama.isBlank() || kategori == null || tanggal == null) {
+        if (nama == null || nama.isBlank() || kategori == null || tanggal == null)
             return Map.of("success", false, "message", "Field wajib tidak boleh kosong!");
-        }
 
         Event ev = new Event();
         ev.setNama(nama); ev.setKategori(kategori); ev.setTanggal(tanggal);
@@ -136,18 +114,16 @@ public class EventController {
         return Map.of("success", true, "message", "Event berhasil dibuat!", "id", ev.getId());
     }
 
-@Transactional
+    // ── Semua penyelenggara bisa edit event manapun ───────────────────────────
+    @Transactional
     @PutMapping("/{id}")
     public Map<String, Object> updateEvent(@PathVariable Long id, @RequestBody Map<String, Object> body) {
         Optional<Event> evOpt = eventRepository.findById(id);
-        if (evOpt.isEmpty()) {
+        if (evOpt.isEmpty())
             return Map.of("success", false, "message", "Event tidak ditemukan!");
-        }
 
         Event ev = evOpt.get();
-        
         try {
-            // Update field dasar jika ada dalam request body
             if (body.containsKey("nama"))          ev.setNama(body.get("nama").toString());
             if (body.containsKey("kategori"))      ev.setKategori(body.get("kategori").toString());
             if (body.containsKey("tanggal"))       ev.setTanggal(body.get("tanggal").toString());
@@ -158,50 +134,37 @@ public class EventController {
             if (body.containsKey("penyelenggara")) ev.setPenyelenggara(body.get("penyelenggara").toString());
             if (body.containsKey("harga"))         ev.setHarga(body.get("harga").toString());
             if (body.containsKey("tipeHarga"))     ev.setTipeHarga(body.get("tipeHarga").toString());
-            
-            // Validasi khusus untuk kapasitas
+
             if (body.containsKey("kapasitas")) {
                 int newKapasitas = Integer.parseInt(body.get("kapasitas").toString());
-                // Proteksi: Kapasitas baru tidak boleh lebih kecil dari jumlah peserta yang sudah mendaftar
-                if (newKapasitas < ev.getTerisi()) {
-                    return Map.of(
-                        "success", false, 
-                        "message", "Gagal update! Kapasitas baru (" + newKapasitas + 
-                        ") lebih kecil dari jumlah peserta yang sudah mendaftar (" + ev.getTerisi() + ")."
-                    );
-                }
+                if (newKapasitas < ev.getTerisi())
+                    return Map.of("success", false, "message",
+                        "Gagal update! Kapasitas baru (" + newKapasitas +
+                        ") lebih kecil dari jumlah peserta yang sudah mendaftar (" + ev.getTerisi() + ").");
                 ev.setKapasitas(newKapasitas);
             }
 
             eventRepository.save(ev);
             return Map.of("success", true, "message", "Data event berhasil diperbarui!");
-
         } catch (Exception e) {
             return Map.of("success", false, "message", "Error saat update: " + e.getMessage());
         }
     }
 
-@Transactional
+    // ── Semua penyelenggara bisa hapus event manapun ─────────────────────────
+    @Transactional
     @DeleteMapping("/{id}")
     public Map<String, Object> deleteEvent(@PathVariable Long id) {
         Optional<Event> evOpt = eventRepository.findById(id);
-        if (evOpt.isEmpty()) {
+        if (evOpt.isEmpty())
             return Map.of("success", false, "message", "Event tidak ditemukan!");
-        }
 
-        // LOGIKA PROTEKSI TAMBAHAN:
-        // Cek apakah ada data pendaftaran yang merujuk ke event ini
         boolean hasParticipants = pendaftaranRepository.findAll()
-                .stream()
-                .anyMatch(p -> p.getEventId().equals(id));
+                .stream().anyMatch(p -> p.getEventId().equals(id));
 
-        if (hasParticipants) {
-            return Map.of(
-                "success", false, 
-                "message", "Event tidak bisa dihapus karena sudah ada peserta yang terdaftar! " +
-                "Hapus semua data pendaftaran terkait terlebih dahulu untuk menjaga integritas data."
-            );
-        }
+        if (hasParticipants)
+            return Map.of("success", false, "message",
+                "Event tidak bisa dihapus karena sudah ada peserta yang terdaftar!");
 
         try {
             eventRepository.deleteById(id);
@@ -211,9 +174,10 @@ public class EventController {
         }
     }
 
+    // ── PERBAIKAN: Semua penyelenggara bisa lihat SEMUA event ─────────────────
     @GetMapping("/kelola/{userId}")
     public List<Event> getEventByPenyelenggara(@PathVariable Long userId) {
-        return eventRepository.findByCreatedBy(userId);
+        return eventRepository.findAll();
     }
 
     @Transactional
@@ -227,11 +191,8 @@ public class EventController {
 
         Event ev = evOpt.get();
 
-        // ── BLOKIR jika event sudah mulai ─────────────────────────────────────
-        if (isEventSudahMulai(ev)) {
+        if (isEventSudahMulai(ev))
             return Map.of("success", false, "message", "Pendaftaran ditutup! Event ini sudah dimulai.");
-        }
-
         if (ev.getTerisi() >= ev.getKapasitas())
             return Map.of("success", false, "message", "Event sudah penuh!");
         if (pendaftaranRepository.existsByUserIdAndEventId(userId, eventId))
@@ -277,8 +238,6 @@ public class EventController {
         }).collect(Collectors.toList());
     }
 
-
-    
     @Transactional
     @PostMapping("/batal")
     public Map<String, Object> batalDaftar(@RequestBody Map<String, Object> body) {
@@ -290,16 +249,11 @@ public class EventController {
             return Map.of("success", false, "message", "Data pendaftaran tidak ditemukan!");
 
         List<Tiket> tikets = tiketRepository.findByPendaftaranId(pendaftaran.getId());
-        boolean sudahCheckIn = tikets.stream()
-            .anyMatch(t -> "digunakan".equals(t.getStatusTiket()));
-        if (sudahCheckIn) {
+        boolean sudahCheckIn = tikets.stream().anyMatch(t -> "digunakan".equals(t.getStatusTiket()));
+        if (sudahCheckIn)
             return Map.of("success", false, "message", "Pendaftaran tidak dapat dibatalkan karena kamu sudah melakukan check-in!");
-        }
 
-        if (!tikets.isEmpty()) {
-            tiketRepository.deleteAll(tikets);
-        }
-
+        if (!tikets.isEmpty()) tiketRepository.deleteAll(tikets);
         pendaftaranRepository.deleteByUserIdAndEventId(userId, eventId);
 
         Optional<Event> evOpt = eventRepository.findById(eventId);
